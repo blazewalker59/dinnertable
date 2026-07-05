@@ -42,3 +42,21 @@ export const recipes = sqliteTable('recipes', {
     .default(sql`(unixepoch())`),
   deletedAt: integer('deleted_at', { mode: 'timestamp' }),
 })
+
+// Card scans and dish photos (ADR-0004, amended): two client-generated
+// renditions per image live in R2 at img/{id}/thumb and img/{id}/full.
+export const recipeImages = sqliteTable('recipe_images', {
+  id: text('id').primaryKey(),
+  recipeId: integer('recipe_id')
+    .notNull()
+    .references(() => recipes.id),
+  width: integer('width'),
+  height: integer('height'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  addedById: integer('added_by_id')
+    .notNull()
+    .references(() => members.id),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+})

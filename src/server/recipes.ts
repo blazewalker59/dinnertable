@@ -3,6 +3,7 @@ import { and, asc, count, eq, isNull, sql } from 'drizzle-orm'
 import { db } from '../db'
 import { members, recipes, sections } from '../db/schema'
 import { currentMember } from './auth'
+import { imagesForRecipe } from './images-store'
 
 export type RecipeFields = {
   title: string
@@ -90,7 +91,8 @@ export const getRecipe = createServerFn()
       .innerJoin(members, eq(members.id, recipes.addedById))
       .where(and(eq(recipes.id, recipeId), notDeleted))
     if (!row) throw new Response('Not found', { status: 404 })
-    return row
+    const images = await imagesForRecipe(recipeId)
+    return { ...row, images }
   })
 
 export const createRecipe = createServerFn({ method: 'POST' })

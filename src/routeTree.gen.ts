@@ -15,6 +15,7 @@ import { Route as SectionsSectionIdRouteImport } from './routes/sections.$sectio
 import { Route as RecipesNewRouteImport } from './routes/recipes.new'
 import { Route as RecipesRecipeIdRouteImport } from './routes/recipes.$recipeId'
 import { Route as RecipesRecipeIdEditRouteImport } from './routes/recipes_.$recipeId.edit'
+import { Route as ImgImageIdSizeRouteImport } from './routes/img.$imageId.$size'
 
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
@@ -46,6 +47,11 @@ const RecipesRecipeIdEditRoute = RecipesRecipeIdEditRouteImport.update({
   path: '/recipes/$recipeId/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ImgImageIdSizeRoute = ImgImageIdSizeRouteImport.update({
+  id: '/img/$imageId/$size',
+  path: '/img/$imageId/$size',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/recipes/$recipeId': typeof RecipesRecipeIdRoute
   '/recipes/new': typeof RecipesNewRoute
   '/sections/$sectionId': typeof SectionsSectionIdRoute
+  '/img/$imageId/$size': typeof ImgImageIdSizeRoute
   '/recipes/$recipeId/edit': typeof RecipesRecipeIdEditRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/recipes/$recipeId': typeof RecipesRecipeIdRoute
   '/recipes/new': typeof RecipesNewRoute
   '/sections/$sectionId': typeof SectionsSectionIdRoute
+  '/img/$imageId/$size': typeof ImgImageIdSizeRoute
   '/recipes/$recipeId/edit': typeof RecipesRecipeIdEditRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/recipes/$recipeId': typeof RecipesRecipeIdRoute
   '/recipes/new': typeof RecipesNewRoute
   '/sections/$sectionId': typeof SectionsSectionIdRoute
+  '/img/$imageId/$size': typeof ImgImageIdSizeRoute
   '/recipes_/$recipeId/edit': typeof RecipesRecipeIdEditRoute
 }
 export interface FileRouteTypes {
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/recipes/$recipeId'
     | '/recipes/new'
     | '/sections/$sectionId'
+    | '/img/$imageId/$size'
     | '/recipes/$recipeId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/recipes/$recipeId'
     | '/recipes/new'
     | '/sections/$sectionId'
+    | '/img/$imageId/$size'
     | '/recipes/$recipeId/edit'
   id:
     | '__root__'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/recipes/$recipeId'
     | '/recipes/new'
     | '/sections/$sectionId'
+    | '/img/$imageId/$size'
     | '/recipes_/$recipeId/edit'
   fileRoutesById: FileRoutesById
 }
@@ -105,6 +117,7 @@ export interface RootRouteChildren {
   RecipesRecipeIdRoute: typeof RecipesRecipeIdRoute
   RecipesNewRoute: typeof RecipesNewRoute
   SectionsSectionIdRoute: typeof SectionsSectionIdRoute
+  ImgImageIdSizeRoute: typeof ImgImageIdSizeRoute
   RecipesRecipeIdEditRoute: typeof RecipesRecipeIdEditRoute
 }
 
@@ -152,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecipesRecipeIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/img/$imageId/$size': {
+      id: '/img/$imageId/$size'
+      path: '/img/$imageId/$size'
+      fullPath: '/img/$imageId/$size'
+      preLoaderRoute: typeof ImgImageIdSizeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -161,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   RecipesRecipeIdRoute: RecipesRecipeIdRoute,
   RecipesNewRoute: RecipesNewRoute,
   SectionsSectionIdRoute: SectionsSectionIdRoute,
+  ImgImageIdSizeRoute: ImgImageIdSizeRoute,
   RecipesRecipeIdEditRoute: RecipesRecipeIdEditRoute,
 }
 export const routeTree = rootRouteImport

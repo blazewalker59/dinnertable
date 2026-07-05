@@ -14,9 +14,9 @@ Member                          Section
   createdAt
 
 Recipe                          RecipeImage
-  id                              id
-  title         (required)       recipeId    → Recipe
-  sectionId     → Section        r2Key       (original bytes in R2)
+  id                              id          (uuid; R2 keys img/{id}/thumb
+  title         (required)                    and img/{id}/full)
+  sectionId     → Section        recipeId    → Recipe
   servings?     (text)           width, height
   attribution?  (text,           sortOrder
                  provenance)     addedById   → Member
@@ -44,7 +44,8 @@ recipes_fts (FTS5 virtual table; raw SQL migration + triggers)
 - Only `title` is required on a recipe.
 - Any member may edit/soft-delete any recipe (wiki-style).
 - Queries exclude `deletedAt IS NOT NULL` rows everywhere.
-- One R2 object per image; all sizes are transformation URLs.
+- Two R2 objects per image (thumb + full renditions, generated client-side at
+  upload); served via the authenticated /img route (ADR-0004 amendment).
 
 ## System shape
 Cloudflare Access (email allowlist) → Worker running TanStack Start

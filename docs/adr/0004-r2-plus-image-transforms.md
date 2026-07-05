@@ -1,6 +1,6 @@
 # ADR-0004: Images in R2, served via Cloudflare Image Transformations
 
-**Status:** Accepted (2026-07-05)
+**Status:** Accepted (2026-07-05) — **Amended (2026-07-05), see below**
 
 ## Context
 Family members upload 8–15 MB phone photos of recipe cards and dishes. We need
@@ -20,3 +20,20 @@ thumbnails fast, and no maintained image pipeline.
 - Thumbnail sizes are URL parameters, changeable anytime; no regeneration jobs.
 - Depends on a custom domain (ADR-0013); `*.workers.dev` cannot transform.
 - Not using the paid Cloudflare Images product; R2 is the single blob store.
+
+## Amendment (2026-07-05): client renditions instead of URL transformations
+
+`/cdn-cgi/image/` transformations fetch their source through the zone, where
+**Cloudflare Access intercepts the subrequest** — every thumbnail would get a
+login redirect instead of bytes. Working around that means a public bypass
+path for images, weakening privacy.
+
+Instead, the **client generates two renditions at upload** (canvas, JPEG):
+`thumb` (~640px) and `full` (~2200px), both stored in R2 at
+`img/{id}/{size}` and served by an authenticated app route (`/img/...`) so
+the browser's Access session cookie protects family photos end-to-end.
+Undecodable formats (e.g. HEIC on some platforms) fall back to storing the
+original file for both sizes.
+
+Trade-off accepted: sizes are frozen at upload; a new size would need a
+backfill. Revisit only if image quality or page weight becomes a problem.

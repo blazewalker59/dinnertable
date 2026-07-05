@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { RecipeImages } from '../components/RecipeImages'
 import { getRecipe } from '../server/recipes'
 
 export const Route = createFileRoute('/recipes/$recipeId')({
@@ -7,7 +8,7 @@ export const Route = createFileRoute('/recipes/$recipeId')({
 })
 
 function RecipePage() {
-  const { recipe, sectionName, addedBy } = Route.useLoaderData()
+  const { recipe, sectionName, addedBy, images } = Route.useLoaderData()
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
       <div className="flex items-center justify-between">
@@ -34,6 +35,8 @@ function RecipePage() {
         {recipe.servings && <>{recipe.servings} · </>}
         added by {addedBy}
       </p>
+
+      <RecipeImages recipeId={recipe.id} images={images} />
 
       {recipe.ingredients && (
         <section className="mt-8">
