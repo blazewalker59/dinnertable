@@ -10,13 +10,22 @@ function RecipePage() {
   const { recipe, sectionName, addedBy } = Route.useLoaderData()
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
-      <Link
-        to="/sections/$sectionId"
-        params={{ sectionId: String(recipe.sectionId) }}
-        className="text-sm text-leaf-deep hover:text-ink"
-      >
-        ← {sectionName}
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link
+          to="/sections/$sectionId"
+          params={{ sectionId: String(recipe.sectionId) }}
+          className="text-sm text-leaf-deep hover:text-ink"
+        >
+          ← {sectionName}
+        </Link>
+        <Link
+          to="/recipes/$recipeId/edit"
+          params={{ recipeId: String(recipe.id) }}
+          className="text-sm font-semibold text-leaf-deep hover:text-ink"
+        >
+          Edit
+        </Link>
+      </div>
       <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
         {recipe.title}
       </h1>

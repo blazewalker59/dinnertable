@@ -19,6 +19,12 @@ function Home() {
         <p className="mt-3 text-ink-soft">
           Recipes worth keeping, from our kitchen to yours.
         </p>
+        <Link
+          to="/recipes/new"
+          className="mt-5 inline-block rounded-lg bg-leaf-deep px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-ink"
+        >
+          Add a recipe
+        </Link>
       </div>
       <ul className="grid gap-4 sm:grid-cols-2">
         {sectionList.map((s) => (

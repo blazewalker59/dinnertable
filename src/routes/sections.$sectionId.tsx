@@ -10,9 +10,17 @@ function SectionPage() {
   const { section, recipes } = Route.useLoaderData()
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
-      <Link to="/" className="text-sm text-leaf-deep hover:text-ink">
-        ← All sections
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link to="/" className="text-sm text-leaf-deep hover:text-ink">
+          ← All sections
+        </Link>
+        <Link
+          to="/recipes/new"
+          className="text-sm font-semibold text-leaf-deep hover:text-ink"
+        >
+          + Add a recipe
+        </Link>
+      </div>
       <h1 className="mt-3 mb-8 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
         {section.name}
       </h1>

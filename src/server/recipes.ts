@@ -1,8 +1,37 @@
 import { createServerFn } from '@tanstack/react-start'
-import { and, asc, count, eq, isNull } from 'drizzle-orm'
+import { and, asc, count, eq, isNull, sql } from 'drizzle-orm'
 import { db } from '../db'
 import { members, recipes, sections } from '../db/schema'
 import { currentMember } from './auth'
+
+export type RecipeFields = {
+  title: string
+  sectionId: number
+  servings: string | null
+  attribution: string | null
+  ingredients: string | null
+  instructions: string | null
+  notes: string | null
+}
+
+// Only title is required (ADR-0003); blank optional fields become null.
+function validateFields(input: RecipeFields): RecipeFields {
+  const title = input.title.trim()
+  if (!title) throw new Error('Title is required')
+  const clean = (v: string | null) => {
+    const t = v?.trim()
+    return t ? t : null
+  }
+  return {
+    title,
+    sectionId: Number(input.sectionId),
+    servings: clean(input.servings),
+    attribution: clean(input.attribution),
+    ingredients: clean(input.ingredients),
+    instructions: clean(input.instructions),
+    notes: clean(input.notes),
+  }
+}
 
 // Every recipe query excludes soft-deleted rows (ADR-0007).
 const notDeleted = isNull(recipes.deletedAt)
@@ -62,4 +91,45 @@ export const getRecipe = createServerFn()
       .where(and(eq(recipes.id, recipeId), notDeleted))
     if (!row) throw new Response('Not found', { status: 404 })
     return row
+  })
+
+export const createRecipe = createServerFn({ method: 'POST' })
+  .inputValidator(validateFields)
+  .handler(async ({ data }) => {
+    const me = await currentMember()
+    const [created] = await db()
+      .insert(recipes)
+      .values({ ...data, addedById: me.id })
+      .returning({ id: recipes.id })
+    return created
+  })
+
+// Wiki-style: any member may edit or delete any recipe (ADR-0007).
+export const updateRecipe = createServerFn({ method: 'POST' })
+  .inputValidator((input: RecipeFields & { id: number }) => ({
+    id: Number(input.id),
+    ...validateFields(input),
+  }))
+  .handler(async ({ data: { id, ...fields } }) => {
+    await currentMember()
+    const [updated] = await db()
+      .update(recipes)
+      .set({ ...fields, updatedAt: sql`(unixepoch())` })
+      .where(and(eq(recipes.id, id), notDeleted))
+      .returning({ id: recipes.id })
+    if (!updated) throw new Response('Not found', { status: 404 })
+    return updated
+  })
+
+export const deleteRecipe = createServerFn({ method: 'POST' })
+  .inputValidator((id: number) => Number(id))
+  .handler(async ({ data: id }) => {
+    await currentMember()
+    const [deleted] = await db()
+      .update(recipes)
+      .set({ deletedAt: sql`(unixepoch())` })
+      .where(and(eq(recipes.id, id), notDeleted))
+      .returning({ sectionId: recipes.sectionId })
+    if (!deleted) throw new Response('Not found', { status: 404 })
+    return deleted
   })
