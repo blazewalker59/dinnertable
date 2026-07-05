@@ -40,12 +40,22 @@ function RootLayout() {
               dinnertable
             </span>
           </Link>
-          <Link
-            to="/profile"
-            className="text-sm font-semibold text-leaf-deep hover:text-ink"
-          >
-            {me.displayName}
-          </Link>
+          <div className="flex items-center gap-4">
+            <form action="/search" method="get">
+              <input
+                type="search"
+                name="q"
+                placeholder="Search…"
+                className="w-28 rounded-full border border-line bg-cream px-4 py-1.5 text-sm focus:border-leaf-deep focus:outline-none sm:w-48"
+              />
+            </form>
+            <Link
+              to="/profile"
+              className="text-sm font-semibold text-leaf-deep hover:text-ink"
+            >
+              {me.displayName}
+            </Link>
+          </div>
         </div>
       </header>
       <Outlet />

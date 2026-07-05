@@ -95,6 +95,38 @@ export const getRecipe = createServerFn()
     return { ...row, images }
   })
 
+// FTS5 lives outside Drizzle's schema model (ADR-0006) — raw SQL seam.
+export const searchRecipes = createServerFn()
+  .inputValidator((q: string) => q.trim().slice(0, 100))
+  .handler(async ({ data: q }) => {
+    await currentMember()
+    if (!q) return { query: q, results: [] }
+    // Quote each term so user input can't inject FTS syntax; * = prefix match.
+    const match = q
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((t) => `"${t.replaceAll('"', '""')}"*`)
+      .join(' ')
+    const rows = await db().all<{
+      id: number
+      title: string
+      attribution: string | null
+      sectionId: number
+      sectionName: string
+    }>(sql`
+      SELECT r.id, r.title, r.attribution,
+             r.section_id AS sectionId, s.name AS sectionName
+      FROM recipes_fts f
+      JOIN recipes r ON r.id = f.rowid
+      JOIN sections s ON s.id = r.section_id
+      WHERE recipes_fts MATCH ${match}
+        AND r.deleted_at IS NULL
+      ORDER BY rank
+      LIMIT 30
+    `)
+    return { query: q, results: rows }
+  })
+
 export const createRecipe = createServerFn({ method: 'POST' })
   .inputValidator(validateFields)
   .handler(async ({ data }) => {
