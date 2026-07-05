@@ -50,6 +50,13 @@ function RootLayout() {
               />
             </form>
             <Link
+              to="/favorites"
+              aria-label="My favorites"
+              className="text-lg text-petal-deep hover:text-ink"
+            >
+              ♥
+            </Link>
+            <Link
               to="/profile"
               className="text-sm font-semibold text-leaf-deep hover:text-ink"
             >

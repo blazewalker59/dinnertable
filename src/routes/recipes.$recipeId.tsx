@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { FavoriteButton } from '../components/FavoriteButton'
 import { RecipeImages } from '../components/RecipeImages'
 import { getRecipe } from '../server/recipes'
 
@@ -8,7 +9,8 @@ export const Route = createFileRoute('/recipes/$recipeId')({
 })
 
 function RecipePage() {
-  const { recipe, sectionName, addedBy, images } = Route.useLoaderData()
+  const { recipe, sectionName, addedBy, images, isFavorite } =
+    Route.useLoaderData()
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
       <div className="flex items-center justify-between">
@@ -19,13 +21,16 @@ function RecipePage() {
         >
           ← {sectionName}
         </Link>
-        <Link
-          to="/recipes/$recipeId/edit"
-          params={{ recipeId: String(recipe.id) }}
-          className="text-sm font-semibold text-leaf-deep hover:text-ink"
-        >
-          Edit
-        </Link>
+        <span className="flex items-center gap-4">
+          <FavoriteButton recipeId={recipe.id} isFavorite={isFavorite} />
+          <Link
+            to="/recipes/$recipeId/edit"
+            params={{ recipeId: String(recipe.id) }}
+            className="text-sm font-semibold text-leaf-deep hover:text-ink"
+          >
+            Edit
+          </Link>
+        </span>
       </div>
       <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
         {recipe.title}

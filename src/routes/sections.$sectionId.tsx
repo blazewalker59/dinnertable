@@ -35,7 +35,14 @@ function SectionPage() {
                 params={{ recipeId: String(r.id) }}
                 className="flex items-baseline justify-between gap-4 px-6 py-4 transition hover:bg-cream"
               >
-                <span className="font-semibold">{r.title}</span>
+                <span className="font-semibold">
+                  {r.title}
+                  {r.isFavorite && (
+                    <span className="ml-2 text-petal-deep" aria-label="Favorited">
+                      ♥
+                    </span>
+                  )}
+                </span>
                 {r.attribution && (
                   <span className="shrink-0 text-sm text-ink-soft">
                     {r.attribution}

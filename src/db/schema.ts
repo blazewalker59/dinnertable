@@ -1,5 +1,10 @@
 import { sql } from 'drizzle-orm'
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import {
+  integer,
+  primaryKey,
+  sqliteTable,
+  text,
+} from 'drizzle-orm/sqlite-core'
 
 // See docs/DOMAIN.md — auto-provisioned from Cloudflare Access (ADR-0002).
 export const members = sqliteTable('members', {
@@ -42,6 +47,23 @@ export const recipes = sqliteTable('recipes', {
     .default(sql`(unixepoch())`),
   deletedAt: integer('deleted_at', { mode: 'timestamp' }),
 })
+
+// A member's heart on a recipe — the only social feature (ADR-0010).
+export const favorites = sqliteTable(
+  'favorites',
+  {
+    memberId: integer('member_id')
+      .notNull()
+      .references(() => members.id),
+    recipeId: integer('recipe_id')
+      .notNull()
+      .references(() => recipes.id),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (t) => [primaryKey({ columns: [t.memberId, t.recipeId] })],
+)
 
 // Card scans and dish photos (ADR-0004, amended): two client-generated
 // renditions per image live in R2 at img/{id}/thumb and img/{id}/full.

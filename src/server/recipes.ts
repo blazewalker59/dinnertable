@@ -1,7 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { and, asc, count, eq, isNull, sql } from 'drizzle-orm'
 import { db } from '../db'
-import { members, recipes, sections } from '../db/schema'
+import { favorites, members, recipes, sections } from '../db/schema'
 import { currentMember } from './auth'
 import { imagesForRecipe } from './images-store'
 
@@ -55,7 +55,7 @@ export const listSections = createServerFn().handler(async () => {
 export const getSection = createServerFn()
   .inputValidator((id: number) => id)
   .handler(async ({ data: sectionId }) => {
-    await currentMember()
+    const me = await currentMember()
     const d = db()
     const [section] = await d
       .select()
@@ -68,17 +68,31 @@ export const getSection = createServerFn()
         title: recipes.title,
         attribution: recipes.attribution,
         servings: recipes.servings,
+        isFavorite: favorites.recipeId,
       })
       .from(recipes)
+      .leftJoin(
+        favorites,
+        and(
+          eq(favorites.recipeId, recipes.id),
+          eq(favorites.memberId, me.id),
+        ),
+      )
       .where(and(eq(recipes.sectionId, sectionId), notDeleted))
       .orderBy(asc(recipes.title))
-    return { section, recipes: sectionRecipes }
+    return {
+      section,
+      recipes: sectionRecipes.map((r) => ({
+        ...r,
+        isFavorite: r.isFavorite != null,
+      })),
+    }
   })
 
 export const getRecipe = createServerFn()
   .inputValidator((id: number) => id)
   .handler(async ({ data: recipeId }) => {
-    await currentMember()
+    const me = await currentMember()
     const d = db()
     const [row] = await d
       .select({
@@ -91,8 +105,19 @@ export const getRecipe = createServerFn()
       .innerJoin(members, eq(members.id, recipes.addedById))
       .where(and(eq(recipes.id, recipeId), notDeleted))
     if (!row) throw new Response('Not found', { status: 404 })
-    const images = await imagesForRecipe(recipeId)
-    return { ...row, images }
+    const [images, [fav]] = await Promise.all([
+      imagesForRecipe(recipeId),
+      d
+        .select()
+        .from(favorites)
+        .where(
+          and(
+            eq(favorites.recipeId, recipeId),
+            eq(favorites.memberId, me.id),
+          ),
+        ),
+    ])
+    return { ...row, images, isFavorite: !!fav }
   })
 
 // FTS5 lives outside Drizzle's schema model (ADR-0006) — raw SQL seam.
