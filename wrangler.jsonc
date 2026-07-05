@@ -8,6 +8,10 @@
 		"enabled": true
 	},
 	"upload_source_maps": true,
+	"vars": {
+		"ACCESS_TEAM_DOMAIN": "dinnertablecc.cloudflareaccess.com",
+		"ACCESS_AUD": "b98733ab846e9f8bac954e571dd4e9b6e35271269463a21a9230d450f376e610"
+	},
 	"routes": [
 		{
 			"pattern": "dinnertable.cc",
