@@ -10,3 +10,5 @@ dist/
 # Family content stays out of the public repo — used locally to seed D1
 *.pdf
 scripts/seed-data/
+.tanstack/
+dist-ssr/
