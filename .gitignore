@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.wrangler/
+.env
+.env.*
+.dev.vars
+.DS_Store
+.claude/settings.local.json
+
+# Family content stays out of the public repo — used locally to seed D1
+*.pdf
+scripts/seed-data/
