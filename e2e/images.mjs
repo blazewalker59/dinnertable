@@ -38,30 +38,39 @@ await page.setInputFiles('input[type=file]', {
   mimeType: 'image/png',
   buffer: Buffer.from(png),
 })
+// Hero renders the full rendition
 await page.waitForSelector('img[src^="/img/"]', { timeout: 30000 })
-console.log('upload rendered in gallery')
+console.log('hero rendered')
 
-// The thumb should actually serve bytes (authenticated same-origin route)
-const src = await page.getAttribute('img[src^="/img/"]', 'src')
-const res = await page.request.get(base + src)
-if (!res.ok()) throw new Error('thumb fetch failed: ' + res.status())
-const bytes = (await res.body()).length
-console.log('thumb served,', bytes, 'bytes,', res.headers()['content-type'])
-if (bytes < 1000) throw new Error('thumb suspiciously small')
+const fullSrc = await page.getAttribute('img[src^="/img/"]', 'src')
+if (!fullSrc.endsWith('/full')) throw new Error('hero should use full rendition, got ' + fullSrc)
+const thumbSrc = fullSrc.replace('/full', '/thumb')
 
-// Full-res link exists and serves
-const fullRes = await page.request.get(base + src.replace('/thumb', '/full'))
+// Both renditions serve bytes (authenticated same-origin route)
+const thumbRes = await page.request.get(base + thumbSrc)
+if (!thumbRes.ok()) throw new Error('thumb fetch failed: ' + thumbRes.status())
+const thumbBytes = (await thumbRes.body()).length
+const fullRes = await page.request.get(base + fullSrc)
 if (!fullRes.ok()) throw new Error('full fetch failed')
 const fullBytes = (await fullRes.body()).length
-console.log('full served,', fullBytes, 'bytes')
-if (fullBytes <= bytes) throw new Error('full should be larger than thumb')
+console.log('thumb', thumbBytes, 'bytes; full', fullBytes, 'bytes,', fullRes.headers()['content-type'])
+if (thumbBytes < 1000) throw new Error('thumb suspiciously small')
+if (fullBytes <= thumbBytes) throw new Error('full should be larger than thumb')
 
-// Remove (any member, wiki-style)
+// Lightbox: opens in-app (no new tab), closes on Escape
+await page.click('button[aria-label="View photo"]')
+await page.waitForSelector('[role=dialog] img[src$="/full"]', { timeout: 10000 })
+console.log('lightbox opens in-app')
+await page.keyboard.press('Escape')
+await page.waitForSelector('[role=dialog]', { state: 'detached', timeout: 10000 })
+console.log('lightbox closes on Escape')
+
+// Remove (any member, wiki-style) — deletes DB row and R2 objects
 page.on('dialog', (d) => d.accept())
 await page.hover('figure')
 await page.click('button[aria-label="Remove photo"]')
 await page.waitForSelector('img[src^="/img/"]', { state: 'detached', timeout: 15000 })
-const gone = await page.request.get(base + src)
+const gone = await page.request.get(base + fullSrc)
 if (gone.status() !== 404) throw new Error('deleted image still serves: ' + gone.status())
 console.log('image removed; R2 object 404s')
 
