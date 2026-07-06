@@ -48,6 +48,8 @@ recipes_fts (FTS5 virtual table; raw SQL migration + triggers)
   upload); served via the authenticated /img route (ADR-0004 amendment).
 
 ## System shape
-Cloudflare Access (email allowlist) → Worker running TanStack Start
-(loaders + server functions) → D1 (Drizzle; FTS5 raw) + R2 (image originals)
-→ served on a custom domain with Image Transformations.
+Worker running TanStack Start (loaders + server functions) with in-app
+Google auth via Better Auth (email allowlist, ADR-0014) → D1 (Drizzle; FTS5
+raw) + R2 (image renditions) → served on dinnertable.cc. Better Auth owns
+user/session/account/verification tables; the domain references `members`
+only.

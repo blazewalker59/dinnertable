@@ -4,6 +4,7 @@ import {
   Outlet,
   Scripts,
   createRootRoute,
+  redirect,
 } from '@tanstack/react-router'
 import { Sprig } from '../components/Sprig'
 import { getMe } from '../server/members'
@@ -11,8 +12,10 @@ import { getMe } from '../server/members'
 import appCss from '../styles.css?url'
 
 export const Route = createRootRoute({
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
     const me = await getMe()
+    if (!me && location.pathname !== '/login')
+      throw redirect({ to: '/login' })
     return { me }
   },
   loader: ({ context }) => ({ me: context.me }),
@@ -30,6 +33,7 @@ export const Route = createRootRoute({
 
 function RootLayout() {
   const { me } = Route.useLoaderData()
+  if (!me) return <Outlet />
   return (
     <>
       <header className="border-b border-line bg-card/70">

@@ -15,7 +15,8 @@
     "cf-typegen": "wrangler types",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "wrangler d1 migrations apply dinnertable --local",
-    "db:migrate:remote": "wrangler d1 migrations apply dinnertable --remote"
+    "db:migrate:remote": "wrangler d1 migrations apply dinnertable --remote",
+    "auth:generate": "npx @better-auth/cli@latest generate --config src/lib/auth-cli.ts --output drizzle/auth-schema.ts"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.26.0",
@@ -26,8 +27,8 @@
     "@tanstack/react-router-ssr-query": "latest",
     "@tanstack/react-start": "latest",
     "@tanstack/router-plugin": "^1.132.0",
+    "better-auth": "^1.6.23",
     "drizzle-orm": "^0.45.2",
-    "jose": "^6.2.3",
     "lucide-react": "^0.545.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

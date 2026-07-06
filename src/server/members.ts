@@ -2,9 +2,9 @@ import { createServerFn } from '@tanstack/react-start'
 import { eq } from 'drizzle-orm'
 import { db } from '../db'
 import { members } from '../db/schema'
-import { currentMember } from './auth'
+import { currentMember, maybeMember } from './auth'
 
-export const getMe = createServerFn().handler(async () => currentMember())
+export const getMe = createServerFn().handler(async () => maybeMember())
 
 export const updateDisplayName = createServerFn({ method: 'POST' })
   .inputValidator((name: string) => {

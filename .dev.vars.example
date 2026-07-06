@@ -1,2 +1,8 @@
-# Local dev identity (Access is not in the loop locally)
+# Local dev identity bypass (skips Google entirely for dev/e2e)
 DEV_USER_EMAIL="you@example.com"
+# Better Auth (only needed to exercise the real Google flow locally)
+BETTER_AUTH_URL="http://localhost:3000"
+BETTER_AUTH_SECRET="generate-with: openssl rand -base64 32"
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+ALLOWLIST_EMAILS="you@example.com"

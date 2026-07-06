@@ -9,8 +9,9 @@
 	},
 	"upload_source_maps": true,
 	"vars": {
-		"ACCESS_TEAM_DOMAIN": "dinnertablecc.cloudflareaccess.com",
-		"ACCESS_AUD": "b98733ab846e9f8bac954e571dd4e9b6e35271269463a21a9230d450f376e610"
+		"BETTER_AUTH_URL": "https://dinnertable.cc",
+		"GOOGLE_CLIENT_ID": "249873146283-3jqqptahf5jtjbtm7653abb46tcr0711.apps.googleusercontent.com",
+		"ALLOWLIST_EMAILS": "blazewalker59@gmail.com"
 	},
 	"routes": [
 		{

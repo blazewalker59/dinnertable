@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SectionsSectionIdRouteImport } from './routes/sections.$sectionId'
@@ -18,6 +19,7 @@ import { Route as RecipesNewRouteImport } from './routes/recipes.new'
 import { Route as RecipesRecipeIdRouteImport } from './routes/recipes.$recipeId'
 import { Route as RecipesRecipeIdEditRouteImport } from './routes/recipes_.$recipeId.edit'
 import { Route as ImgImageIdSizeRouteImport } from './routes/img.$imageId.$size'
+import { Route as ApiAuthSplatRouteImport } from './routes/api.auth.$'
 
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
@@ -27,6 +29,11 @@ const SearchRoute = SearchRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FavoritesRoute = FavoritesRouteImport.update({
@@ -64,26 +71,35 @@ const ImgImageIdSizeRoute = ImgImageIdSizeRouteImport.update({
   path: '/img/$imageId/$size',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/favorites': typeof FavoritesRoute
+  '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/search': typeof SearchRoute
   '/recipes/$recipeId': typeof RecipesRecipeIdRoute
   '/recipes/new': typeof RecipesNewRoute
   '/sections/$sectionId': typeof SectionsSectionIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/img/$imageId/$size': typeof ImgImageIdSizeRoute
   '/recipes/$recipeId/edit': typeof RecipesRecipeIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/favorites': typeof FavoritesRoute
+  '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/search': typeof SearchRoute
   '/recipes/$recipeId': typeof RecipesRecipeIdRoute
   '/recipes/new': typeof RecipesNewRoute
   '/sections/$sectionId': typeof SectionsSectionIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/img/$imageId/$size': typeof ImgImageIdSizeRoute
   '/recipes/$recipeId/edit': typeof RecipesRecipeIdEditRoute
 }
@@ -91,11 +107,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/favorites': typeof FavoritesRoute
+  '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/search': typeof SearchRoute
   '/recipes/$recipeId': typeof RecipesRecipeIdRoute
   '/recipes/new': typeof RecipesNewRoute
   '/sections/$sectionId': typeof SectionsSectionIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/img/$imageId/$size': typeof ImgImageIdSizeRoute
   '/recipes_/$recipeId/edit': typeof RecipesRecipeIdEditRoute
 }
@@ -104,33 +122,39 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/favorites'
+    | '/login'
     | '/profile'
     | '/search'
     | '/recipes/$recipeId'
     | '/recipes/new'
     | '/sections/$sectionId'
+    | '/api/auth/$'
     | '/img/$imageId/$size'
     | '/recipes/$recipeId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/favorites'
+    | '/login'
     | '/profile'
     | '/search'
     | '/recipes/$recipeId'
     | '/recipes/new'
     | '/sections/$sectionId'
+    | '/api/auth/$'
     | '/img/$imageId/$size'
     | '/recipes/$recipeId/edit'
   id:
     | '__root__'
     | '/'
     | '/favorites'
+    | '/login'
     | '/profile'
     | '/search'
     | '/recipes/$recipeId'
     | '/recipes/new'
     | '/sections/$sectionId'
+    | '/api/auth/$'
     | '/img/$imageId/$size'
     | '/recipes_/$recipeId/edit'
   fileRoutesById: FileRoutesById
@@ -138,11 +162,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   FavoritesRoute: typeof FavoritesRoute
+  LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
   SearchRoute: typeof SearchRoute
   RecipesRecipeIdRoute: typeof RecipesRecipeIdRoute
   RecipesNewRoute: typeof RecipesNewRoute
   SectionsSectionIdRoute: typeof SectionsSectionIdRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ImgImageIdSizeRoute: typeof ImgImageIdSizeRoute
   RecipesRecipeIdEditRoute: typeof RecipesRecipeIdEditRoute
 }
@@ -161,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/favorites': {
@@ -212,17 +245,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImgImageIdSizeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   FavoritesRoute: FavoritesRoute,
+  LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
   SearchRoute: SearchRoute,
   RecipesRecipeIdRoute: RecipesRecipeIdRoute,
   RecipesNewRoute: RecipesNewRoute,
   SectionsSectionIdRoute: SectionsSectionIdRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
   ImgImageIdSizeRoute: ImgImageIdSizeRoute,
   RecipesRecipeIdEditRoute: RecipesRecipeIdEditRoute,
 }

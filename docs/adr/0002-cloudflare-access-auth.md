@@ -1,6 +1,8 @@
 # ADR-0002: Authentication via Cloudflare Access
 
-**Status:** Accepted (2026-07-05)
+**Status:** ~~Accepted~~ **Superseded by ADR-0014** (2026-07-05) — the OTP
+login UX failed in practice (codes bound to tab state, "already used" errors
+on mobile); replaced with in-app Google auth via Better Auth.
 
 ## Context
 Users are ~5–15 family members, some non-technical. We need "keep strangers
