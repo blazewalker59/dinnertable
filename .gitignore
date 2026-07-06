@@ -13,3 +13,4 @@ scripts/seed-data/
 .tanstack/
 dist-ssr/
 .cf-access-api-token
+pics/
