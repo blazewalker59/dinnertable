@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- The dinnertable sprig (src/components/Sprig.tsx), squared and bolded
+       for small sizes; theme colors inlined. -->
+  <rect width="64" height="64" rx="14" fill="#fdfbf6"/>
+  <g transform="translate(2,17)">
+    <path d="M4 28 C 20 24, 44 20, 58 7" stroke="#5c7a5c" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M18 25 C 15 18, 20 13, 26 12 C 26 19, 24 24, 18 25 Z" fill="#a9c0a9"/>
+    <path d="M34 20 C 30 14, 34 8, 40 6 C 41 13, 40 18, 34 20 Z" fill="#a9c0a9"/>
+    <circle cx="55" cy="7" r="6.5" fill="#f3d5da"/>
+    <circle cx="55" cy="7" r="2.6" fill="#c2626f"/>
+  </g>
+</svg>

@@ -26,7 +26,12 @@ export const Route = createRootRoute({
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: 'dinnertable' },
     ],
-    links: [{ rel: 'stylesheet', href: appCss }],
+    links: [
+      { rel: 'stylesheet', href: appCss },
+      { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
+      { rel: 'apple-touch-icon', href: '/logo192.png' },
+      { rel: 'manifest', href: '/manifest.json' },
+    ],
   }),
   shellComponent: RootDocument,
   component: RootLayout,
