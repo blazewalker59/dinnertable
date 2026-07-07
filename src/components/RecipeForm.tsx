@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { RecipeFields } from '../server/recipes'
+import { createSection } from '../server/sections'
 
 const inputCls =
   'w-full rounded-lg border border-line bg-card px-3 py-2 focus:border-leaf-deep focus:outline-none'
@@ -17,6 +18,7 @@ export function RecipeForm({
 }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [newSection, setNewSection] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -25,9 +27,16 @@ export function RecipeForm({
     setBusy(true)
     setError(null)
     try {
+      let sectionId = Number(f.get('sectionId'))
+      if (f.get('sectionId') === 'new') {
+        const created = await createSection({
+          data: (f.get('newSectionName') as string) ?? '',
+        })
+        sectionId = created.id
+      }
       await onSubmit({
         title: (f.get('title') as string) ?? '',
-        sectionId: Number(f.get('sectionId')),
+        sectionId,
         servings: str('servings'),
         attribution: str('attribution'),
         ingredients: str('ingredients'),
@@ -49,13 +58,29 @@ export function RecipeForm({
       <div className="grid gap-5 sm:grid-cols-3">
         <label className="block">
           <span className="mb-1 block text-sm font-semibold">Section</span>
-          <select name="sectionId" defaultValue={initial?.sectionId} className={inputCls}>
+          <select
+            name="sectionId"
+            defaultValue={initial?.sectionId}
+            onChange={(e) => setNewSection(e.target.value === 'new')}
+            className={inputCls}
+          >
             {sections.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
               </option>
             ))}
+            <option value="new">+ New section…</option>
           </select>
+          {newSection && (
+            <input
+              name="newSectionName"
+              required
+              autoFocus
+              placeholder="Section name"
+              maxLength={60}
+              className={`mt-2 ${inputCls}`}
+            />
+          )}
         </label>
         <label className="block">
           <span className="mb-1 block text-sm font-semibold">Servings</span>

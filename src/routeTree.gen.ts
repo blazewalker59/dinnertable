@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SearchRouteImport } from './routes/search'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FavoritesRouteImport } from './routes/favorites'
@@ -21,11 +20,6 @@ import { Route as RecipesRecipeIdEditRouteImport } from './routes/recipes_.$reci
 import { Route as ImgImageIdSizeRouteImport } from './routes/img.$imageId.$size'
 import { Route as ApiAuthSplatRouteImport } from './routes/api.auth.$'
 
-const SearchRoute = SearchRouteImport.update({
-  id: '/search',
-  path: '/search',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -82,7 +76,6 @@ export interface FileRoutesByFullPath {
   '/favorites': typeof FavoritesRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
-  '/search': typeof SearchRoute
   '/recipes/$recipeId': typeof RecipesRecipeIdRoute
   '/recipes/new': typeof RecipesNewRoute
   '/sections/$sectionId': typeof SectionsSectionIdRoute
@@ -95,7 +88,6 @@ export interface FileRoutesByTo {
   '/favorites': typeof FavoritesRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
-  '/search': typeof SearchRoute
   '/recipes/$recipeId': typeof RecipesRecipeIdRoute
   '/recipes/new': typeof RecipesNewRoute
   '/sections/$sectionId': typeof SectionsSectionIdRoute
@@ -109,7 +101,6 @@ export interface FileRoutesById {
   '/favorites': typeof FavoritesRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
-  '/search': typeof SearchRoute
   '/recipes/$recipeId': typeof RecipesRecipeIdRoute
   '/recipes/new': typeof RecipesNewRoute
   '/sections/$sectionId': typeof SectionsSectionIdRoute
@@ -124,7 +115,6 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/login'
     | '/profile'
-    | '/search'
     | '/recipes/$recipeId'
     | '/recipes/new'
     | '/sections/$sectionId'
@@ -137,7 +127,6 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/login'
     | '/profile'
-    | '/search'
     | '/recipes/$recipeId'
     | '/recipes/new'
     | '/sections/$sectionId'
@@ -150,7 +139,6 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/login'
     | '/profile'
-    | '/search'
     | '/recipes/$recipeId'
     | '/recipes/new'
     | '/sections/$sectionId'
@@ -164,7 +152,6 @@ export interface RootRouteChildren {
   FavoritesRoute: typeof FavoritesRoute
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
-  SearchRoute: typeof SearchRoute
   RecipesRecipeIdRoute: typeof RecipesRecipeIdRoute
   RecipesNewRoute: typeof RecipesNewRoute
   SectionsSectionIdRoute: typeof SectionsSectionIdRoute
@@ -175,13 +162,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/search': {
-      id: '/search'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof SearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/profile': {
       id: '/profile'
       path: '/profile'
@@ -260,7 +240,6 @@ const rootRouteChildren: RootRouteChildren = {
   FavoritesRoute: FavoritesRoute,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
-  SearchRoute: SearchRoute,
   RecipesRecipeIdRoute: RecipesRecipeIdRoute,
   RecipesNewRoute: RecipesNewRoute,
   SectionsSectionIdRoute: SectionsSectionIdRoute,

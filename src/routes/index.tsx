@@ -1,4 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { useState } from 'react'
+import { ManageSections } from '../components/ManageSections'
 import { Sprig } from '../components/Sprig'
 import { listSections } from '../server/recipes'
 
@@ -9,6 +11,7 @@ export const Route = createFileRoute('/')({
 
 function Home() {
   const sectionList = Route.useLoaderData()
+  const [managing, setManaging] = useState(false)
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
       <div className="mb-10 text-center">
@@ -42,6 +45,15 @@ function Home() {
           </li>
         ))}
       </ul>
+      <div className="mt-8 text-center">
+        <button
+          onClick={() => setManaging((m) => !m)}
+          className="text-sm text-ink-soft hover:text-leaf-deep"
+        >
+          {managing ? 'Done editing sections' : 'Edit sections'}
+        </button>
+        {managing && <ManageSections sections={sectionList} />}
+      </div>
     </main>
   )
 }

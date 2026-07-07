@@ -6,6 +6,7 @@ import {
   createRootRoute,
   redirect,
 } from '@tanstack/react-router'
+import { SearchBox } from '../components/SearchBox'
 import { Sprig } from '../components/Sprig'
 import { getMe } from '../server/members'
 
@@ -45,14 +46,7 @@ function RootLayout() {
             </span>
           </Link>
           <div className="flex items-center gap-4">
-            <form action="/search" method="get">
-              <input
-                type="search"
-                name="q"
-                placeholder="Search…"
-                className="w-28 rounded-full border border-line bg-cream px-4 py-1.5 text-sm focus:border-leaf-deep focus:outline-none sm:w-48"
-              />
-            </form>
+            <SearchBox />
             <Link
               to="/favorites"
               aria-label="My favorites"
