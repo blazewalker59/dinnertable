@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { CopyButton } from '../components/CopyButton'
 import { FavoriteButton } from '../components/FavoriteButton'
 import { RecipeImages } from '../components/RecipeImages'
 import { getRecipe } from '../server/recipes'
@@ -45,9 +46,12 @@ function RecipePage() {
 
       {recipe.ingredients && (
         <section className="mt-8">
-          <h2 className="mb-3 font-display text-lg font-semibold text-leaf-deep">
-            Ingredients
-          </h2>
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="font-display text-lg font-semibold text-leaf-deep">
+              Ingredients
+            </h2>
+            <CopyButton text={recipe.ingredients} label="Copy ingredients" />
+          </div>
           <div className="rounded-2xl border border-line bg-card px-6 py-5 whitespace-pre-line leading-relaxed">
             {recipe.ingredients}
           </div>
