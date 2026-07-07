@@ -43,14 +43,14 @@ function RootLayout() {
   return (
     <>
       <header className="border-b border-line bg-card/70">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-          <Link to="/" className="flex items-center gap-2">
-            <Sprig className="h-5 w-10" />
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
+          <Link to="/" className="flex shrink-0 items-center gap-2">
+            <Sprig className="hidden h-5 w-10 sm:block" />
             <span className="font-display text-xl font-semibold tracking-tight">
               dinnertable
             </span>
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <SearchBox />
             <Link
               to="/favorites"
@@ -61,9 +61,24 @@ function RootLayout() {
             </Link>
             <Link
               to="/profile"
+              aria-label="Your profile"
               className="text-sm font-semibold text-leaf-deep hover:text-ink"
             >
-              {me.displayName}
+              <span className="hidden sm:inline">{me.displayName}</span>
+              <svg
+                viewBox="0 0 20 20"
+                fill="none"
+                aria-hidden
+                className="h-5 w-5 sm:hidden"
+              >
+                <circle cx="10" cy="6.5" r="3.2" stroke="currentColor" strokeWidth="1.6" />
+                <path
+                  d="M3.5 17c1-3.2 3.5-4.5 6.5-4.5s5.5 1.3 6.5 4.5"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
             </Link>
           </div>
         </div>

@@ -87,7 +87,7 @@ export function SearchBox() {
         role="combobox"
         aria-expanded={open}
         aria-label="Search recipes"
-        className="w-32 rounded-full border border-line bg-cream px-4 py-1.5 text-sm focus:border-leaf-deep focus:outline-none sm:w-56"
+        className="w-28 rounded-full border border-line bg-cream px-4 py-1.5 text-sm focus:border-leaf-deep focus:outline-none sm:w-56"
       />
       {searching && (
         <span className="absolute top-1/2 right-3 -translate-y-1/2 text-xs text-ink-soft">
@@ -97,7 +97,7 @@ export function SearchBox() {
       {open && (
         <ul
           role="listbox"
-          className="absolute right-0 z-40 mt-2 max-h-96 w-[min(24rem,90vw)] overflow-y-auto rounded-2xl border border-line bg-card py-1 shadow-lg"
+          className="fixed inset-x-3 top-16 z-40 max-h-[60dvh] overflow-y-auto rounded-2xl border border-line bg-card py-1 shadow-lg sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:mt-2 sm:max-h-96 sm:w-96"
         >
           {results.length === 0 ? (
             <li className="px-4 py-3 text-sm text-ink-soft">
