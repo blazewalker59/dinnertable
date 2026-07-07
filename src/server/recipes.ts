@@ -1,7 +1,13 @@
 import { createServerFn } from '@tanstack/react-start'
-import { and, asc, count, eq, isNull, sql } from 'drizzle-orm'
+import { and, asc, count, desc, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { db } from '../db'
-import { favorites, members, recipes, sections } from '../db/schema'
+import {
+  favorites,
+  members,
+  recipeImages,
+  recipes,
+  sections,
+} from '../db/schema'
 import { currentMember } from './auth'
 import { imagesForRecipe } from './images-store'
 
@@ -50,6 +56,39 @@ export const listSections = createServerFn().handler(async () => {
     .leftJoin(recipes, and(eq(recipes.sectionId, sections.id), notDeleted))
     .groupBy(sections.id)
     .orderBy(asc(sections.sortOrder))
+})
+
+export const recentRecipes = createServerFn().handler(async () => {
+  await currentMember()
+  const d = db()
+  const rows = await d
+    .select({
+      id: recipes.id,
+      title: recipes.title,
+      attribution: recipes.attribution,
+      sectionName: sections.name,
+      addedBy: members.displayName,
+    })
+    .from(recipes)
+    .innerJoin(sections, eq(sections.id, recipes.sectionId))
+    .innerJoin(members, eq(members.id, recipes.addedById))
+    .where(notDeleted)
+    .orderBy(desc(recipes.createdAt), desc(recipes.id))
+    .limit(5)
+
+  const ids = rows.map((r) => r.id)
+  const images = ids.length
+    ? await d
+        .select({ id: recipeImages.id, recipeId: recipeImages.recipeId })
+        .from(recipeImages)
+        .where(inArray(recipeImages.recipeId, ids))
+        .orderBy(asc(recipeImages.sortOrder), asc(recipeImages.createdAt))
+    : []
+  const firstImage = new Map<number, string>()
+  for (const img of images)
+    if (!firstImage.has(img.recipeId)) firstImage.set(img.recipeId, img.id)
+
+  return rows.map((r) => ({ ...r, imageId: firstImage.get(r.id) ?? null }))
 })
 
 export const getSection = createServerFn()
