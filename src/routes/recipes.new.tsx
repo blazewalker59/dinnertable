@@ -23,6 +23,9 @@ function NewRecipe() {
   const [attachPhoto, setAttachPhoto] = useState(true)
   const [scanning, setScanning] = useState(false)
   const [scanError, setScanError] = useState<string | null>(null)
+  // Pasted screenshots accumulate here (clipboard = one image per paste);
+  // extraction runs when the member says they've got them all.
+  const [pending, setPending] = useState<Array<File>>([])
 
   function applyDraft(extracted: ExtractedRecipe, sourceFiles: Array<File>) {
     const section = sections.find((s) => s.name === extracted.sectionName)
@@ -66,6 +69,17 @@ function NewRecipe() {
       applyDraft(await extractRecipe({ data: form }), files)
     })
 
+  function queuePasted(file: File) {
+    setScanError(null)
+    setPending((prev) => {
+      if (prev.length >= 4) {
+        setScanError('At most 4 images per scan')
+        return prev
+      }
+      return [...prev, file]
+    })
+  }
+
   const scanText = (text: string) =>
     busyWrap(async () => {
       applyDraft(await extractRecipeText({ data: text }), [])
@@ -81,15 +95,14 @@ function NewRecipe() {
           const imgType = item.types.find((t) => t.startsWith('image/'))
           if (imgType) {
             const blob = await item.getType(imgType)
-            await scanImages([
-              new File([blob], 'clipboard.png', { type: imgType }),
-            ])
+            queuePasted(new File([blob], 'clipboard.png', { type: imgType }))
             return
           }
         }
       }
       const text = await navigator.clipboard.readText().catch(() => '')
       if (text.trim()) {
+        setPending([])
         await scanText(text)
         return
       }
@@ -116,12 +129,13 @@ function NewRecipe() {
     )
     if (file) {
       e.preventDefault()
-      void scanImages([file])
+      queuePasted(file)
       return
     }
     const text = e.clipboardData?.getData('text')
     if (text?.trim()) {
       e.preventDefault()
+      setPending([])
       void scanText(text)
     }
   }
@@ -165,7 +179,47 @@ function NewRecipe() {
         </div>
       </div>
       {scanError && <p className="mb-4 text-sm text-petal-deep">{scanError}</p>}
-      {draftVersion > 0 && !scanError && (
+      {pending.length > 0 && (
+        <div className="mb-6 rounded-2xl border border-leaf bg-card px-4 py-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {pending.map((file, i) => (
+              <span key={i} className="relative">
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt=""
+                  className="h-16 w-16 rounded-lg border border-line object-cover"
+                  onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)}
+                />
+                <button
+                  onClick={() =>
+                    setPending((prev) => prev.filter((_, j) => j !== i))
+                  }
+                  aria-label="Remove image"
+                  className="absolute -top-1.5 -right-1.5 grid h-5 w-5 place-items-center rounded-full bg-white text-xs font-bold text-petal-deep shadow"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+            <button
+              onClick={async () => {
+                const files = pending
+                setPending([])
+                await scanImages(files)
+              }}
+              disabled={scanning}
+              className="rounded-lg bg-leaf-deep px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink disabled:opacity-50"
+            >
+              {scanning ? 'Reading…' : `✨ Read recipe (${pending.length})`}
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-ink-soft">
+            Paste again to add the next screenshot (up to 4), then read them
+            together as one recipe.
+          </p>
+        </div>
+      )}
+      {draftVersion > 0 && !scanError && pending.length === 0 && (
         <div className="mb-6 rounded-2xl border border-leaf bg-card px-4 py-3 text-sm">
           <p className="font-semibold text-leaf-deep">
             Drafted for you — give it a once-over before saving.
