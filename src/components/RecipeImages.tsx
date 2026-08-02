@@ -1,26 +1,9 @@
 import { useRouter } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
+import { rendition } from '../lib/image-client'
 import { deleteImage, uploadImage } from '../server/images'
 
 type ImageRow = { id: string; width: number | null; height: number | null }
-
-// Downscale in the browser so 12MB phone photos never cross the wire
-// (ADR-0004): a ~640px thumb for lists and a ~2200px full for card reading.
-async function rendition(file: File, maxDim: number) {
-  const bitmap = await createImageBitmap(file)
-  const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height))
-  const width = Math.round(bitmap.width * scale)
-  const height = Math.round(bitmap.height * scale)
-  const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
-  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, width, height)
-  const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, 'image/jpeg', 0.85),
-  )
-  if (!blob) throw new Error('Could not process image')
-  return { blob, width, height }
-}
 
 function Lightbox({
   images,

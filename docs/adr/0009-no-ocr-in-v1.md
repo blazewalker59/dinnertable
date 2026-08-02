@@ -1,6 +1,11 @@
 # ADR-0009: No transcription/OCR of handwritten cards in v1
 
-**Status:** Accepted (2026-07-05)
+**Status:** Accepted (2026-07-05) — **fast-follow shipped 2026-08-01**: "Scan
+from photo" on the add-recipe page uses Workers AI (Llama 4 Scout,
+`AI` binding — staying fully Cloudflare) to draft all free-text fields plus a
+section guess from a card photo or screenshot. Human-reviewed in the form
+before save, exactly as designed below; the source photo optionally attaches
+to the recipe. Verified against printed clippings and handwritten cards.
 
 ## Context
 Handwritten card photos could be transcribed by an AI vision model to make
