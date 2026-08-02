@@ -112,24 +112,38 @@ async function runExtraction(
 
 export const extractRecipe = createServerFn({ method: 'POST' })
   .inputValidator((data: FormData) => {
-    const image = data.get('image')
-    if (!(image instanceof File)) throw new Error('image is required')
-    return { image }
+    const images = data.getAll('image').filter((v) => v instanceof File)
+    if (images.length === 0) throw new Error('image is required')
+    if (images.length > 4) throw new Error('At most 4 images per scan')
+    return { images }
   })
   .handler(async ({ data }) => {
     await currentMember()
     const names = await sectionNames()
-    const dataUrl = `data:${data.image.type || 'image/jpeg'};base64,${bufToBase64(
-      await data.image.arrayBuffer(),
-    )}`
+    const imageParts = await Promise.all(
+      data.images.map(async (image) => ({
+        type: 'image_url',
+        image_url: {
+          url: `data:${image.type || 'image/jpeg'};base64,${bufToBase64(
+            await image.arrayBuffer(),
+          )}`,
+        },
+      })),
+    )
     return runExtraction(
       [
         { role: 'system', content: systemPrompt(names, 'image') },
         {
           role: 'user',
           content: [
-            { type: 'text', text: 'Extract the recipe from this image.' },
-            { type: 'image_url', image_url: { url: dataUrl } },
+            {
+              type: 'text',
+              text:
+                data.images.length === 1
+                  ? 'Extract the recipe from this image.'
+                  : `These ${data.images.length} images are sequential parts of ONE recipe (e.g. front/back of a card or a long screenshot split up). Combine them into a single recipe, in order.`,
+            },
+            ...imageParts,
           ],
         },
       ],

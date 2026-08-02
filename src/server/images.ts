@@ -19,6 +19,7 @@ export const uploadImage = createServerFn({ method: 'POST' })
       full,
       width: Number(data.get('width')) || null,
       height: Number(data.get('height')) || null,
+      sortOrder: Number(data.get('sortOrder')) || 0,
     }
   })
   .handler(async ({ data }) => {
@@ -39,6 +40,7 @@ export const uploadImage = createServerFn({ method: 'POST' })
         recipeId: data.recipeId,
         width: data.width,
         height: data.height,
+        sortOrder: data.sortOrder,
         addedById: me.id,
       })
       .returning()

@@ -19,12 +19,12 @@ function NewRecipe() {
   const scanInput = useRef<HTMLInputElement>(null)
   const [draft, setDraft] = useState<Partial<RecipeFields>>()
   const [draftVersion, setDraftVersion] = useState(0)
-  const [scanFile, setScanFile] = useState<File | null>(null)
+  const [scanFiles, setScanFiles] = useState<Array<File>>([])
   const [attachPhoto, setAttachPhoto] = useState(true)
   const [scanning, setScanning] = useState(false)
   const [scanError, setScanError] = useState<string | null>(null)
 
-  function applyDraft(extracted: ExtractedRecipe, sourceFile: File | null) {
+  function applyDraft(extracted: ExtractedRecipe, sourceFiles: Array<File>) {
     const section = sections.find((s) => s.name === extracted.sectionName)
     setDraft({
       title: extracted.title,
@@ -35,7 +35,7 @@ function NewRecipe() {
       instructions: extracted.instructions,
       notes: extracted.notes,
     })
-    setScanFile(sourceFile)
+    setScanFiles(sourceFiles)
     setDraftVersion((v) => v + 1)
   }
 
@@ -54,18 +54,21 @@ function NewRecipe() {
     }
   }
 
-  const scanImage = (file: File) =>
+  const scanImages = (files: Array<File>) =>
     busyWrap(async () => {
-      // Downscaled copy for the model; keep the original for attaching.
-      const { blob } = await rendition(file, 1600)
+      if (files.length > 4) throw new Error('At most 4 images per scan')
+      // Downscaled copies for the model; keep the originals for attaching.
       const form = new FormData()
-      form.set('image', new File([blob], 'scan.jpg', { type: 'image/jpeg' }))
-      applyDraft(await extractRecipe({ data: form }), file)
+      for (const file of files) {
+        const { blob } = await rendition(file, 1600)
+        form.append('image', new File([blob], 'scan.jpg', { type: 'image/jpeg' }))
+      }
+      applyDraft(await extractRecipe({ data: form }), files)
     })
 
   const scanText = (text: string) =>
     busyWrap(async () => {
-      applyDraft(await extractRecipeText({ data: text }), null)
+      applyDraft(await extractRecipeText({ data: text }), [])
     })
 
   async function handlePasteButton() {
@@ -78,9 +81,9 @@ function NewRecipe() {
           const imgType = item.types.find((t) => t.startsWith('image/'))
           if (imgType) {
             const blob = await item.getType(imgType)
-            await scanImage(
+            await scanImages([
               new File([blob], 'clipboard.png', { type: imgType }),
-            )
+            ])
             return
           }
         }
@@ -113,7 +116,7 @@ function NewRecipe() {
     )
     if (file) {
       e.preventDefault()
-      void scanImage(file)
+      void scanImages([file])
       return
     }
     const text = e.clipboardData?.getData('text')
@@ -139,8 +142,11 @@ function NewRecipe() {
             ref={scanInput}
             type="file"
             accept="image/*"
+            multiple
             className="hidden"
-            onChange={(e) => e.target.files?.[0] && scanImage(e.target.files[0])}
+            onChange={(e) =>
+              e.target.files?.length && scanImages(Array.from(e.target.files))
+            }
           />
           <button
             onClick={() => scanInput.current?.click()}
@@ -164,14 +170,14 @@ function NewRecipe() {
           <p className="font-semibold text-leaf-deep">
             Drafted for you — give it a once-over before saving.
           </p>
-          {scanFile && (
+          {scanFiles.length > 0 && (
             <label className="mt-1 flex items-center gap-2 text-ink-soft">
               <input
                 type="checkbox"
                 checked={attachPhoto}
                 onChange={(e) => setAttachPhoto(e.target.checked)}
               />
-              Attach the photo to the recipe
+              Attach the {scanFiles.length === 1 ? 'photo' : `${scanFiles.length} photos`} to the recipe
             </label>
           )}
         </div>
@@ -183,21 +189,24 @@ function NewRecipe() {
         submitLabel="Add recipe"
         onSubmit={async (fields) => {
           const { id } = await createRecipe({ data: fields })
-          if (scanFile && attachPhoto) {
-            try {
-              const [thumb, full] = await Promise.all([
-                rendition(scanFile, 640),
-                rendition(scanFile, 2200),
-              ])
-              const form = new FormData()
-              form.set('recipeId', String(id))
-              form.set('thumb', new File([thumb.blob], 'thumb.jpg', { type: 'image/jpeg' }))
-              form.set('full', new File([full.blob], 'full.jpg', { type: 'image/jpeg' }))
-              form.set('width', String(full.width))
-              form.set('height', String(full.height))
-              await uploadImage({ data: form })
-            } catch {
-              // Photo attach is best-effort; the recipe text is already saved.
+          if (scanFiles.length > 0 && attachPhoto) {
+            for (const [i, file] of scanFiles.entries()) {
+              try {
+                const [thumb, full] = await Promise.all([
+                  rendition(file, 640),
+                  rendition(file, 2200),
+                ])
+                const form = new FormData()
+                form.set('recipeId', String(id))
+                form.set('sortOrder', String(i))
+                form.set('thumb', new File([thumb.blob], 'thumb.jpg', { type: 'image/jpeg' }))
+                form.set('full', new File([full.blob], 'full.jpg', { type: 'image/jpeg' }))
+                form.set('width', String(full.width))
+                form.set('height', String(full.height))
+                await uploadImage({ data: form })
+              } catch {
+                // Photo attach is best-effort; the recipe text is already saved.
+              }
             }
           }
           await navigate({
