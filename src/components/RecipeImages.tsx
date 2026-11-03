@@ -51,7 +51,7 @@ function Lightbox({
       <button
         onClick={onClose}
         aria-label="Close viewer"
-        className="absolute top-4 right-4 grid h-10 w-10 place-items-center rounded-full bg-cream/20 text-2xl text-cream transition hover:bg-cream/40"
+        className="absolute top-[max(env(safe-area-inset-top),1rem)] right-4 grid h-10 w-10 place-items-center rounded-full bg-cream/20 text-2xl text-cream transition hover:bg-cream/40"
       >
         ×
       </button>
@@ -77,7 +77,7 @@ function Lightbox({
           >
             ›
           </button>
-          <span className="absolute bottom-4 rounded-full bg-cream/20 px-3 py-1 text-sm text-cream">
+          <span className="absolute bottom-[max(env(safe-area-inset-bottom),1rem)] rounded-full bg-cream/20 px-3 py-1 text-sm text-cream">
             {index + 1} / {images.length}
           </span>
         </>

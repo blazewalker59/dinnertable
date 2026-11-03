@@ -23,8 +23,22 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      {
+        name: 'viewport',
+        content: 'width=device-width, initial-scale=1, viewport-fit=cover',
+      },
       { title: 'dinnertable' },
+      // Matches the solid header (bg-card), which the status bar sits over.
+      { name: 'theme-color', content: '#ffffff' },
+      { name: 'apple-mobile-web-app-capable', content: 'yes' },
+      {
+        name: 'apple-mobile-web-app-status-bar-style',
+        // Not black-translucent: iOS blurs anything drawn under a
+        // translucent status bar in the Home Screen app.
+        content: 'default',
+      },
+      { name: 'apple-mobile-web-app-title', content: 'dinnertable' },
+      { name: 'mobile-web-app-capable', content: 'yes' },
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
@@ -42,7 +56,10 @@ function RootLayout() {
   if (!me) return <Outlet />
   return (
     <>
-      <header className="border-b border-line bg-card/70">
+      {/* Solid and pinned to the top: on iOS (26+) the installed app draws
+          under the status bar and blurs whatever scrolls there. A solid
+          element pinned at the top is what keeps that area crisp. */}
+      <header className="sticky top-0 z-30 border-b border-line bg-card pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <Link to="/" className="flex shrink-0 items-center gap-2">
             <Sprig className="hidden h-5 w-10 sm:block" />

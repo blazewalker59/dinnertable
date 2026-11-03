@@ -97,7 +97,7 @@ export function SearchBox() {
       {open && (
         <ul
           role="listbox"
-          className="fixed inset-x-3 top-16 z-40 max-h-[60dvh] overflow-y-auto rounded-2xl border border-line bg-card py-1 shadow-lg sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:mt-2 sm:max-h-96 sm:w-96"
+          className="fixed inset-x-3 top-[calc(env(safe-area-inset-top)+4.5rem)] z-40 max-h-[60dvh] overflow-y-auto rounded-2xl border border-line bg-card py-1 shadow-lg sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:mt-2 sm:max-h-96 sm:w-96"
         >
           {results.length === 0 ? (
             <li className="px-4 py-3 text-sm text-ink-soft">
