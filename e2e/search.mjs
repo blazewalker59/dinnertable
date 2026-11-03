@@ -46,7 +46,7 @@ console.log('insert trigger ok')
 // Soft-deleted recipes drop out of results
 page.on('dialog', (d) => d.accept())
 await goto(`/recipes/${id}/edit`)
-await page.click('text=Delete')
+await page.click('button:has-text("Delete recipe")')
 await page.waitForURL(/\/sections\/\d+$/, { timeout: 15000 })
 await search('zanzibar')
 await page.waitForSelector('[role=listbox] >> text=No recipes match', { timeout: 10000 })

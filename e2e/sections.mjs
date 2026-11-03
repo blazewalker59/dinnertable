@@ -34,7 +34,7 @@ console.log('rename ok')
 
 // Empty the section, then delete it
 await goto(`/recipes/${recipeId}/edit`)
-await page.click('text=Delete')
+await page.click('button:has-text("Delete recipe")')
 await page.waitForURL(/\/sections\/\d+$/, { timeout: 15000 })
 await goto('/')
 await page.click('text=Edit sections')

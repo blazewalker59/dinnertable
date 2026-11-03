@@ -28,8 +28,8 @@ export function FavoriteButton({
       onClick={toggle}
       aria-label={shown ? 'Remove from favorites' : 'Add to favorites'}
       aria-pressed={shown}
-      className={`text-2xl leading-none transition ${
-        shown ? 'text-petal-deep' : 'text-line hover:text-petal-deep'
+      className={`icon-btn text-2xl leading-none hover:bg-petal/40 ${
+        shown ? 'text-petal-accent' : 'text-line-strong hover:text-petal-accent'
       }`}
     >
       {shown ? '♥' : '♡'}

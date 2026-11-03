@@ -6,6 +6,7 @@ import {
   createRootRoute,
   redirect,
 } from '@tanstack/react-router'
+import { RouteProgress } from '../components/PageStates'
 import { SearchBox } from '../components/SearchBox'
 import { Sprig } from '../components/Sprig'
 import { getMe } from '../server/members'
@@ -41,6 +42,18 @@ export const Route = createRootRoute({
       { name: 'mobile-web-app-capable', content: 'yes' },
     ],
     links: [
+      // Fonts as <link>s, not a CSS @import, so they don't block the
+      // stylesheet (faster cold start of the Home Screen app).
+      { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.gstatic.com',
+        crossOrigin: 'anonymous',
+      },
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap',
+      },
       { rel: 'stylesheet', href: appCss },
       { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
       { rel: 'apple-touch-icon', href: '/logo192.png' },
@@ -60,26 +73,26 @@ function RootLayout() {
           under the status bar and blurs whatever scrolls there. A solid
           element pinned at the top is what keeps that area crisp. */}
       <header className="sticky top-0 z-30 border-b border-line bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
-          <Link to="/" className="flex shrink-0 items-center gap-2">
-            <Sprig className="hidden h-5 w-10 sm:block" />
+        <div className="relative mx-auto flex max-w-3xl items-center justify-between gap-2 px-4 py-3 sm:px-6">
+          <Link to="/" className="flex min-h-11 shrink-0 items-center gap-2">
+            <Sprig className="h-4 w-8 sm:h-5 sm:w-10" />
             <span className="font-display text-xl font-semibold tracking-tight">
               dinnertable
             </span>
           </Link>
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-1 sm:gap-2">
             <SearchBox />
             <Link
               to="/favorites"
               aria-label="My favorites"
-              className="text-lg text-petal-deep hover:text-ink"
+              className="icon-btn text-xl text-petal-accent hover:bg-petal/40"
             >
               ♥
             </Link>
             <Link
               to="/profile"
               aria-label="Your profile"
-              className="text-sm font-semibold text-leaf-deep hover:text-ink"
+              className="link min-w-11 justify-center sm:px-2"
             >
               <span className="hidden sm:inline">{me.displayName}</span>
               <svg
@@ -100,6 +113,7 @@ function RootLayout() {
           </div>
         </div>
       </header>
+      <RouteProgress />
       <Outlet />
     </>
   )

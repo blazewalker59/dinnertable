@@ -1,7 +1,7 @@
 // Server-only image helpers. Never import this from client components —
 // files imported by the client may only export createServerFn wrappers.
 import { env } from 'cloudflare:workers'
-import { asc, eq } from 'drizzle-orm'
+import { asc, eq, inArray } from 'drizzle-orm'
 import { db } from '../db'
 import { recipeImages } from '../db/schema'
 
@@ -27,4 +27,22 @@ export async function getImageResponse(imageId: string, size: string) {
       ETag: obj.httpEtag,
     },
   })
+}
+
+/** Adds each recipe's first photo id (for list thumbnails), or null. */
+export async function withFirstImage<T extends { id: number }>(
+  rows: Array<T>,
+): Promise<Array<T & { imageId: string | null }>> {
+  const ids = rows.map((r) => r.id)
+  const images = ids.length
+    ? await db()
+        .select({ id: recipeImages.id, recipeId: recipeImages.recipeId })
+        .from(recipeImages)
+        .where(inArray(recipeImages.recipeId, ids))
+        .orderBy(asc(recipeImages.sortOrder), asc(recipeImages.createdAt))
+    : []
+  const firstImage = new Map<number, string>()
+  for (const img of images)
+    if (!firstImage.has(img.recipeId)) firstImage.set(img.recipeId, img.id)
+  return rows.map((r) => ({ ...r, imageId: firstImage.get(r.id) ?? null }))
 }

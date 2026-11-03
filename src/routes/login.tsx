@@ -62,7 +62,7 @@ function Login() {
         </svg>
         {busy ? 'Opening Google…' : 'Continue with Google'}
       </button>
-      {error && <p className="mt-4 text-sm text-petal-deep">{error}</p>}
+      {error && <p role="alert" className="mt-4 error-text">{error}</p>}
       <p className="mt-8 max-w-xs text-xs text-ink-soft">
         Family members only — ask Blaze to add your email if you can't get in.
       </p>

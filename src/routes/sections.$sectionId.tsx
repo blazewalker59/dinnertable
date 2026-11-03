@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { RecipeList, RecipeRow } from '../components/RecipeRow'
 import { getSection } from '../server/recipes'
 
 export const Route = createFileRoute('/sections/$sectionId')({
@@ -9,49 +10,33 @@ export const Route = createFileRoute('/sections/$sectionId')({
 function SectionPage() {
   const { section, recipes } = Route.useLoaderData()
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <div className="flex items-center justify-between">
-        <Link to="/" className="text-sm text-leaf-deep hover:text-ink">
+    <main className="page max-w-3xl">
+      <div className="-mx-2 flex items-center justify-between">
+        <Link to="/" className="link px-2 font-normal">
           ← All sections
         </Link>
-        <Link
-          to="/recipes/new"
-          className="text-sm font-semibold text-leaf-deep hover:text-ink"
-        >
+        <Link to="/recipes/new" className="link px-2">
           + Add a recipe
         </Link>
       </div>
-      <h1 className="mt-3 mb-8 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+      <h1 className="mt-2 mb-6 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
         {section.name}
       </h1>
       {recipes.length === 0 ? (
         <p className="text-ink-soft">Nothing here yet.</p>
       ) : (
-        <ul className="divide-y divide-line rounded-2xl border border-line bg-card">
+        <RecipeList>
           {recipes.map((r) => (
-            <li key={r.id}>
-              <Link
-                to="/recipes/$recipeId"
-                params={{ recipeId: String(r.id) }}
-                className="flex items-baseline justify-between gap-4 px-6 py-4 transition hover:bg-cream"
-              >
-                <span className="font-semibold">
-                  {r.title}
-                  {r.isFavorite && (
-                    <span className="ml-2 text-petal-deep" aria-label="Favorited">
-                      ♥
-                    </span>
-                  )}
-                </span>
-                {r.attribution && (
-                  <span className="shrink-0 text-sm text-ink-soft">
-                    {r.attribution}
-                  </span>
-                )}
-              </Link>
-            </li>
+            <RecipeRow
+              key={r.id}
+              id={r.id}
+              title={r.title}
+              imageId={r.imageId}
+              detail={r.attribution}
+              isFavorite={r.isFavorite}
+            />
           ))}
-        </ul>
+        </RecipeList>
       )}
     </main>
   )

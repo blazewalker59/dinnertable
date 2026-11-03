@@ -34,31 +34,36 @@ function EditRecipe() {
     })
   }
 
+  const toRecipe = () =>
+    navigate({
+      to: '/recipes/$recipeId',
+      params: { recipeId: String(recipe.id) },
+    })
+
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">
-          Edit recipe
-        </h1>
-        <button
-          onClick={handleDelete}
-          className="text-sm font-semibold text-petal-deep hover:text-ink"
-        >
-          Delete
-        </button>
-      </div>
+    <main className="page max-w-2xl">
+      <h1 className="mb-6 font-display text-3xl font-semibold tracking-tight">
+        Edit recipe
+      </h1>
       <RecipeForm
         sections={sections}
         initial={recipe}
         submitLabel="Save changes"
+        onCancel={toRecipe}
         onSubmit={async (fields) => {
           await updateRecipe({ data: { id: recipe.id, ...fields } })
-          await navigate({
-            to: '/recipes/$recipeId',
-            params: { recipeId: String(recipe.id) },
-          })
+          await toRecipe()
         }}
       />
+      <section className="mt-12 rounded-2xl border border-petal-deep/40 px-5 py-4">
+        <h2 className="font-semibold text-petal-deep">Delete this recipe</h2>
+        <p className="mt-1 text-sm text-ink-soft">
+          It disappears for everyone. An admin can bring it back.
+        </p>
+        <button onClick={handleDelete} className="mt-3 btn-danger">
+          Delete recipe
+        </button>
+      </section>
     </main>
   )
 }

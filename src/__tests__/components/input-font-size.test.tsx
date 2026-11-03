@@ -43,7 +43,12 @@ describe.each([
   [
     'RecipeForm',
     () => (
-      <RecipeForm sections={sections} submitLabel="Save" onSubmit={vi.fn()} />
+      <RecipeForm
+        sections={sections}
+        submitLabel="Save"
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+      />
     ),
   ],
 ])('%s text fields', (_name, ui) => {

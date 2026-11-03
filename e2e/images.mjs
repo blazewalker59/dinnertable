@@ -76,7 +76,7 @@ console.log('image removed; R2 object 404s')
 
 // cleanup recipe
 await goto(`/recipes/${id}/edit`)
-await page.click('text=Delete')
+await page.click('button:has-text("Delete recipe")')
 await page.waitForURL(/\/sections\/\d+$/, { timeout: 15000 })
 
 await browser.close()

@@ -22,7 +22,7 @@ export function Sprig({ className = '' }: { className?: string }) {
         fill="var(--color-leaf)"
       />
       <circle cx="58" cy="6" r="4" fill="var(--color-petal)" />
-      <circle cx="58" cy="6" r="1.6" fill="var(--color-petal-deep)" />
+      <circle cx="58" cy="6" r="1.6" fill="var(--color-petal-accent)" />
     </svg>
   )
 }

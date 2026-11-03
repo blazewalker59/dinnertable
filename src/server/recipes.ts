@@ -1,15 +1,15 @@
 import { createServerFn } from '@tanstack/react-start'
-import { and, asc, count, desc, eq, inArray, isNull, sql } from 'drizzle-orm'
+import { notFound } from '@tanstack/react-router'
+import { and, asc, count, desc, eq, isNull, sql } from 'drizzle-orm'
 import { db } from '../db'
 import {
   favorites,
   members,
-  recipeImages,
   recipes,
   sections,
 } from '../db/schema'
 import { currentMember } from './auth'
-import { imagesForRecipe } from './images-store'
+import { imagesForRecipe, withFirstImage } from './images-store'
 
 export type RecipeFields = {
   title: string
@@ -76,20 +76,9 @@ export const recentRecipes = createServerFn().handler(async () => {
     .orderBy(desc(recipes.createdAt), desc(recipes.id))
     .limit(5)
 
-  const ids = rows.map((r) => r.id)
-  const images = ids.length
-    ? await d
-        .select({ id: recipeImages.id, recipeId: recipeImages.recipeId })
-        .from(recipeImages)
-        .where(inArray(recipeImages.recipeId, ids))
-        .orderBy(asc(recipeImages.sortOrder), asc(recipeImages.createdAt))
-    : []
-  const firstImage = new Map<number, string>()
-  for (const img of images)
-    if (!firstImage.has(img.recipeId)) firstImage.set(img.recipeId, img.id)
-
-  return rows.map((r) => ({ ...r, imageId: firstImage.get(r.id) ?? null }))
+  return withFirstImage(rows)
 })
+
 
 export const getSection = createServerFn()
   .inputValidator((id: number) => id)
@@ -100,7 +89,7 @@ export const getSection = createServerFn()
       .select()
       .from(sections)
       .where(eq(sections.id, sectionId))
-    if (!section) throw new Response('Not found', { status: 404 })
+    if (!section) throw notFound()
     const sectionRecipes = await d
       .select({
         id: recipes.id,
@@ -121,10 +110,9 @@ export const getSection = createServerFn()
       .orderBy(asc(recipes.title))
     return {
       section,
-      recipes: sectionRecipes.map((r) => ({
-        ...r,
-        isFavorite: r.isFavorite != null,
-      })),
+      recipes: await withFirstImage(
+        sectionRecipes.map((r) => ({ ...r, isFavorite: r.isFavorite != null })),
+      ),
     }
   })
 
@@ -143,7 +131,7 @@ export const getRecipe = createServerFn()
       .innerJoin(sections, eq(sections.id, recipes.sectionId))
       .innerJoin(members, eq(members.id, recipes.addedById))
       .where(and(eq(recipes.id, recipeId), notDeleted))
-    if (!row) throw new Response('Not found', { status: 404 })
+    if (!row) throw notFound()
     const [images, [fav]] = await Promise.all([
       imagesForRecipe(recipeId),
       d
@@ -215,7 +203,7 @@ export const updateRecipe = createServerFn({ method: 'POST' })
       .set({ ...fields, updatedAt: sql`(unixepoch())` })
       .where(and(eq(recipes.id, id), notDeleted))
       .returning({ id: recipes.id })
-    if (!updated) throw new Response('Not found', { status: 404 })
+    if (!updated) throw notFound()
     return updated
   })
 
@@ -228,6 +216,6 @@ export const deleteRecipe = createServerFn({ method: 'POST' })
       .set({ deletedAt: sql`(unixepoch())` })
       .where(and(eq(recipes.id, id), notDeleted))
       .returning({ sectionId: recipes.sectionId })
-    if (!deleted) throw new Response('Not found', { status: 404 })
+    if (!deleted) throw notFound()
     return deleted
   })

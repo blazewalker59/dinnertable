@@ -3,6 +3,7 @@ import { and, asc, eq, isNull } from 'drizzle-orm'
 import { db } from '../db'
 import { favorites, recipes, sections } from '../db/schema'
 import { currentMember } from './auth'
+import { withFirstImage } from './images-store'
 
 export const toggleFavorite = createServerFn({ method: 'POST' })
   .inputValidator((recipeId: number) => Number(recipeId))
@@ -24,7 +25,7 @@ export const toggleFavorite = createServerFn({ method: 'POST' })
 
 export const myFavorites = createServerFn().handler(async () => {
   const me = await currentMember()
-  return db()
+  const rows = await db()
     .select({
       id: recipes.id,
       title: recipes.title,
@@ -39,4 +40,5 @@ export const myFavorites = createServerFn().handler(async () => {
     .innerJoin(sections, eq(sections.id, recipes.sectionId))
     .where(eq(favorites.memberId, me.id))
     .orderBy(asc(recipes.title))
+  return withFirstImage(rows)
 })

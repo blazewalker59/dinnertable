@@ -16,7 +16,7 @@ export function CopyButton({ text, label }: { text: string; label: string }) {
       onClick={copy}
       aria-label={label}
       title={label}
-      className="flex items-center gap-1.5 text-sm font-semibold text-leaf-deep transition hover:text-ink"
+      className="link"
     >
       {copied ? (
         <>

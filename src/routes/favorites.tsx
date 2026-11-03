@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { RecipeList, RecipeRow } from '../components/RecipeRow'
 import { myFavorites } from '../server/favorites'
 
 export const Route = createFileRoute('/favorites')({
@@ -9,8 +10,11 @@ export const Route = createFileRoute('/favorites')({
 function FavoritesPage() {
   const favoritesList = Route.useLoaderData()
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="mb-8 font-display text-3xl font-semibold tracking-tight">
+    <main className="page max-w-3xl">
+      <Link to="/" className="link -ml-2 px-2 font-normal">
+        ← All recipes
+      </Link>
+      <h1 className="mt-2 mb-6 font-display text-3xl font-semibold tracking-tight">
         My favorites
       </h1>
       {favoritesList.length === 0 ? (
@@ -18,29 +22,18 @@ function FavoritesPage() {
           No favorites yet — tap the ♡ on any recipe.
         </p>
       ) : (
-        <ul className="divide-y divide-line rounded-2xl border border-line bg-card">
+        <RecipeList>
           {favoritesList.map((r) => (
-            <li key={r.id}>
-              <Link
-                to="/recipes/$recipeId"
-                params={{ recipeId: String(r.id) }}
-                className="flex items-baseline justify-between gap-4 px-6 py-4 transition hover:bg-cream"
-              >
-                <span>
-                  <span className="font-semibold">{r.title}</span>
-                  {r.attribution && (
-                    <span className="ml-2 text-sm text-ink-soft">
-                      {r.attribution}
-                    </span>
-                  )}
-                </span>
-                <span className="shrink-0 text-sm text-leaf-deep">
-                  {r.sectionName}
-                </span>
-              </Link>
-            </li>
+            <RecipeRow
+              key={r.id}
+              id={r.id}
+              title={r.title}
+              imageId={r.imageId}
+              detail={r.attribution}
+              tag={r.sectionName}
+            />
           ))}
-        </ul>
+        </RecipeList>
       )}
     </main>
   )

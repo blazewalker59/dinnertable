@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { RecipeForm } from '../components/RecipeForm'
 import { rendition } from '../lib/image-client'
 import { extractRecipe, extractRecipeText } from '../server/ai'
@@ -26,8 +26,30 @@ function NewRecipe() {
   // Pasted screenshots accumulate here (clipboard = one image per paste);
   // extraction runs when the member says they've got them all.
   const [pending, setPending] = useState<Array<File>>([])
+  // What's being read right now, for the status card ("2 photos", "text").
+  const [reading, setReading] = useState<string | null>(null)
+  // Set once the member types in the form, so a finished scan asks before
+  // replacing their edits.
+  const formDirty = useRef(false)
+
+  // One object URL per pending screenshot, revoked when the list changes.
+  const previews = useMemo(
+    () => pending.map((f) => URL.createObjectURL(f)),
+    [pending],
+  )
+  useEffect(
+    () => () => previews.forEach((u) => URL.revokeObjectURL(u)),
+    [previews],
+  )
 
   function applyDraft(extracted: ExtractedRecipe, sourceFiles: Array<File>) {
+    if (
+      formDirty.current &&
+      !confirm('Replace what you typed with the scanned recipe?')
+    )
+      return
+    formDirty.current = false
+    setScanError(null)
     const section = sections.find((s) => s.name === extracted.sectionName)
     setDraft({
       title: extracted.title,
@@ -42,8 +64,9 @@ function NewRecipe() {
     setDraftVersion((v) => v + 1)
   }
 
-  async function busyWrap(fn: () => Promise<void>) {
+  async function busyWrap(what: string, fn: () => Promise<void>) {
     setScanning(true)
+    setReading(what)
     setScanError(null)
     try {
       await fn()
@@ -53,21 +76,28 @@ function NewRecipe() {
       )
     } finally {
       setScanning(false)
+      setReading(null)
       if (scanInput.current) scanInput.current.value = ''
     }
   }
 
   const scanImages = (files: Array<File>) =>
-    busyWrap(async () => {
-      if (files.length > 4) throw new Error('At most 4 images per scan')
-      // Downscaled copies for the model; keep the originals for attaching.
-      const form = new FormData()
-      for (const file of files) {
-        const { blob } = await rendition(file, 1600)
-        form.append('image', new File([blob], 'scan.jpg', { type: 'image/jpeg' }))
-      }
-      applyDraft(await extractRecipe({ data: form }), files)
-    })
+    busyWrap(
+      files.length === 1 ? 'your photo' : `${files.length} photos`,
+      async () => {
+        if (files.length > 4) throw new Error('At most 4 images per scan')
+        // Downscaled copies for the model; keep the originals for attaching.
+        const form = new FormData()
+        for (const file of files) {
+          const { blob } = await rendition(file, 1600)
+          form.append(
+            'image',
+            new File([blob], 'scan.jpg', { type: 'image/jpeg' }),
+          )
+        }
+        applyDraft(await extractRecipe({ data: form }), files)
+      },
+    )
 
   function queuePasted(file: File) {
     setScanError(null)
@@ -81,7 +111,7 @@ function NewRecipe() {
   }
 
   const scanText = (text: string) =>
-    busyWrap(async () => {
+    busyWrap('the pasted text', async () => {
       applyDraft(await extractRecipeText({ data: text }), [])
     })
 
@@ -110,7 +140,7 @@ function NewRecipe() {
         'Nothing usable on the clipboard — copy a recipe photo or its text first.',
       )
     } catch {
-      setScanError('Clipboard access was blocked — try the Scan photo button.')
+      setScanError('Clipboard access was blocked — try “Take or choose photo”.')
     }
   }
 
@@ -145,57 +175,108 @@ function NewRecipe() {
     return () => document.removeEventListener('paste', h)
   }, [])
 
+  const hasDraft = draftVersion > 0
+
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">
-          Add a recipe
-        </h1>
-        <div className="flex gap-2">
-          <input
-            ref={scanInput}
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={(e) =>
-              e.target.files?.length && scanImages(Array.from(e.target.files))
-            }
-          />
+    <main className="page max-w-2xl">
+      <h1 className="mb-4 font-display text-3xl font-semibold tracking-tight">
+        Add a recipe
+      </h1>
+
+      <input
+        ref={scanInput}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) =>
+          e.target.files?.length && scanImages(Array.from(e.target.files))
+        }
+      />
+      {hasDraft ? (
+        <div className="mb-4 flex flex-wrap items-center gap-x-1 text-sm text-ink-soft">
+          Scan something else:
           <button
             onClick={() => scanInput.current?.click()}
             disabled={scanning}
-            className="rounded-lg border border-leaf bg-card px-4 py-2 text-sm font-semibold text-leaf-deep transition hover:border-leaf-deep disabled:opacity-50"
+            className="link px-2"
           >
-            {scanning ? 'Reading…' : '✨ Scan photo'}
+            Photo
           </button>
           <button
             onClick={handlePasteButton}
             disabled={scanning}
-            className="rounded-lg border border-leaf bg-card px-4 py-2 text-sm font-semibold text-leaf-deep transition hover:border-leaf-deep disabled:opacity-50"
+            className="link px-2"
           >
-            📋 Paste
+            Paste
           </button>
         </div>
-      </div>
-      {scanError && <p className="mb-4 text-sm text-petal-deep">{scanError}</p>}
+      ) : (
+        <section className="mb-6 rounded-2xl border border-leaf bg-card p-4">
+          <h2 className="font-semibold">✨ Start from a photo</h2>
+          <p className="mt-0.5 text-sm text-ink-soft">
+            Snap a recipe card or screenshot and we'll fill in the form.
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <button
+              onClick={() => scanInput.current?.click()}
+              disabled={scanning}
+              className="btn-secondary min-h-14 rounded-2xl text-base"
+            >
+              📷 Take or choose photo
+            </button>
+            <button
+              onClick={handlePasteButton}
+              disabled={scanning}
+              className="btn-secondary min-h-14 rounded-2xl text-base"
+            >
+              📋 Paste screenshot
+            </button>
+          </div>
+          <p className="mt-3 text-center text-sm text-ink-soft">
+            …or type it in yourself ↓
+          </p>
+        </section>
+      )}
+
+      {reading && (
+        <div
+          role="status"
+          className="mb-6 flex items-center gap-3 rounded-2xl border border-leaf bg-card px-4 py-3"
+        >
+          <span
+            aria-hidden
+            className="size-5 shrink-0 animate-spin rounded-full border-2 border-leaf border-t-leaf-deep"
+          />
+          <span>
+            <span className="font-semibold">Reading {reading}…</span>
+            <span className="block text-sm text-ink-soft">
+              Usually takes 5–15 seconds.
+            </span>
+          </span>
+        </div>
+      )}
+      {scanError && (
+        <p role="alert" className="mb-4 error-text">
+          {scanError}
+        </p>
+      )}
       {pending.length > 0 && (
         <div className="mb-6 rounded-2xl border border-leaf bg-card px-4 py-3">
           <div className="flex flex-wrap items-center gap-3">
-            {pending.map((file, i) => (
-              <span key={i} className="relative">
+            {pending.map((_, i) => (
+              <span key={previews[i]} className="relative">
                 <img
-                  src={URL.createObjectURL(file)}
-                  alt=""
-                  className="h-16 w-16 rounded-lg border border-line object-cover"
-                  onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)}
+                  src={previews[i]}
+                  alt={`Screenshot ${i + 1}`}
+                  className="size-16 rounded-lg border border-line object-cover"
                 />
                 <button
                   onClick={() =>
                     setPending((prev) => prev.filter((_, j) => j !== i))
                   }
-                  aria-label="Remove image"
-                  className="absolute -top-1.5 -right-1.5 grid h-5 w-5 place-items-center rounded-full bg-white text-xs font-bold text-petal-deep shadow"
+                  aria-label={`Remove screenshot ${i + 1}`}
+                  className="absolute -top-2.5 -right-2.5 grid size-8 place-items-center rounded-full bg-white text-sm font-bold text-petal-deep shadow before:absolute before:-inset-1.5"
                 >
                   ×
                 </button>
@@ -208,9 +289,9 @@ function NewRecipe() {
                 await scanImages(files)
               }}
               disabled={scanning}
-              className="rounded-lg bg-leaf-deep px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink disabled:opacity-50"
+              className="btn-primary"
             >
-              {scanning ? 'Reading…' : `✨ Read recipe (${pending.length})`}
+              ✨ Read recipe ({pending.length})
             </button>
           </div>
           <p className="mt-2 text-xs text-ink-soft">
@@ -219,19 +300,22 @@ function NewRecipe() {
           </p>
         </div>
       )}
-      {draftVersion > 0 && !scanError && pending.length === 0 && (
+      {hasDraft && !reading && (
         <div className="mb-6 rounded-2xl border border-leaf bg-card px-4 py-3 text-sm">
           <p className="font-semibold text-leaf-deep">
             Drafted for you — give it a once-over before saving.
           </p>
           {scanFiles.length > 0 && (
-            <label className="mt-1 flex items-center gap-2 text-ink-soft">
+            <label className="mt-1 flex min-h-11 cursor-pointer items-center gap-3 text-ink-soft">
               <input
                 type="checkbox"
                 checked={attachPhoto}
                 onChange={(e) => setAttachPhoto(e.target.checked)}
+                className="size-5 accent-leaf-deep"
               />
-              Attach the {scanFiles.length === 1 ? 'photo' : `${scanFiles.length} photos`} to the recipe
+              Attach the{' '}
+              {scanFiles.length === 1 ? 'photo' : `${scanFiles.length} photos`}{' '}
+              to the recipe
             </label>
           )}
         </div>
@@ -241,6 +325,11 @@ function NewRecipe() {
         sections={sections}
         initial={draft}
         submitLabel="Add recipe"
+        locked={scanning}
+        onEdit={() => {
+          formDirty.current = true
+        }}
+        onCancel={() => navigate({ to: '/' })}
         onSubmit={async (fields) => {
           const { id } = await createRecipe({ data: fields })
           if (scanFiles.length > 0 && attachPhoto) {
@@ -253,8 +342,14 @@ function NewRecipe() {
                 const form = new FormData()
                 form.set('recipeId', String(id))
                 form.set('sortOrder', String(i))
-                form.set('thumb', new File([thumb.blob], 'thumb.jpg', { type: 'image/jpeg' }))
-                form.set('full', new File([full.blob], 'full.jpg', { type: 'image/jpeg' }))
+                form.set(
+                  'thumb',
+                  new File([thumb.blob], 'thumb.jpg', { type: 'image/jpeg' }),
+                )
+                form.set(
+                  'full',
+                  new File([full.blob], 'full.jpg', { type: 'image/jpeg' }),
+                )
                 form.set('width', String(full.width))
                 form.set('height', String(full.height))
                 await uploadImage({ data: form })

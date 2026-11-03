@@ -1,7 +1,9 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { ManageSections } from '../components/ManageSections'
+import { RecipeList, RecipeRow } from '../components/RecipeRow'
 import { Sprig } from '../components/Sprig'
+import { joinDetail } from '../lib/recipe-text'
 import { listSections, recentRecipes } from '../server/recipes'
 
 export const Route = createFileRoute('/')({
@@ -19,69 +21,36 @@ function Home() {
   const { sectionList, recent } = Route.useLoaderData()
   const [managing, setManaging] = useState(false)
   return (
-    <main className="mx-auto max-w-3xl px-6 py-10">
-      <div className="mb-4 flex items-baseline justify-between">
-        <h1 className="font-display text-2xl font-semibold tracking-tight">
-          Recently added
-        </h1>
-        <Link
-          to="/recipes/new"
-          className="rounded-lg bg-leaf-deep px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink"
-        >
-          Add a recipe
+    <main className="page max-w-3xl">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="flex items-center gap-2 text-sm font-semibold text-petal-deep">
+            <Sprig className="h-4 w-8" />
+            Recipes from Mama
+          </p>
+          <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight">
+            The family recipe shelf
+          </h1>
+        </div>
+        <Link to="/recipes/new" className="btn-primary">
+          + Add a recipe
         </Link>
       </div>
-      {recent.length === 0 ? (
-        <p className="text-ink-soft">No recipes yet — add the first one.</p>
-      ) : (
-        <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
-          {recent.map((r) => (
-            <li key={r.id}>
-              <Link
-                to="/recipes/$recipeId"
-                params={{ recipeId: String(r.id) }}
-                className="flex items-center gap-4 px-4 py-3 transition hover:bg-cream"
-              >
-                {r.imageId ? (
-                  <img
-                    src={`/img/${r.imageId}/thumb`}
-                    alt=""
-                    loading="lazy"
-                    className="h-14 w-14 shrink-0 rounded-xl border border-line object-cover"
-                  />
-                ) : (
-                  <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl border border-line bg-cream">
-                    <Sprig className="h-5 w-10" />
-                  </span>
-                )}
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-semibold">{r.title}</span>
-                  <span className="block truncate text-sm text-ink-soft">
-                    {r.attribution ? `${r.attribution} · ` : ''}
-                    added by {r.addedBy}
-                  </span>
-                </span>
-                <span className="shrink-0 text-sm text-leaf-deep">
-                  {r.sectionName}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
 
-      <h2 className="mt-10 mb-4 font-display text-2xl font-semibold tracking-tight">
+      <h2 className="mb-3 font-display text-2xl font-semibold tracking-tight">
         Sections
       </h2>
-      <ul className="grid gap-4 sm:grid-cols-2">
+      <ul className="grid grid-cols-2 gap-3 sm:gap-4">
         {sectionList.map((s) => (
           <li key={s.id}>
             <Link
               to="/sections/$sectionId"
               params={{ sectionId: String(s.id) }}
-              className="block rounded-2xl border border-line bg-card px-6 py-6 shadow-sm transition hover:border-leaf hover:shadow"
+              className="block h-full rounded-2xl border border-line bg-gradient-to-br from-petal/30 via-card to-leaf/15 px-4 py-4 shadow-sm transition hover:border-leaf hover:shadow sm:px-6 sm:py-6"
             >
-              <div className="font-display text-xl font-semibold">{s.name}</div>
+              <div className="font-display text-lg font-semibold sm:text-xl">
+                {s.name}
+              </div>
               <div className="mt-1 text-sm text-ink-soft">
                 {s.recipeCount} {s.recipeCount === 1 ? 'recipe' : 'recipes'}
               </div>
@@ -89,15 +58,44 @@ function Home() {
           </li>
         ))}
       </ul>
-      <div className="mt-8 text-center">
+      <div className="mt-2 text-center">
         <button
           onClick={() => setManaging((m) => !m)}
-          className="text-sm text-ink-soft hover:text-leaf-deep"
+          aria-expanded={managing}
+          className="link"
         >
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden className="size-4">
+            <path
+              d="M13.5 3.5l3 3L7 16H4v-3l9.5-9.5z"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+            />
+          </svg>
           {managing ? 'Done editing sections' : 'Edit sections'}
         </button>
         {managing && <ManageSections sections={sectionList} />}
       </div>
+
+      <h2 className="mt-8 mb-3 font-display text-2xl font-semibold tracking-tight">
+        Recently added
+      </h2>
+      {recent.length === 0 ? (
+        <p className="text-ink-soft">No recipes yet — add the first one.</p>
+      ) : (
+        <RecipeList>
+          {recent.map((r) => (
+            <RecipeRow
+              key={r.id}
+              id={r.id}
+              title={r.title}
+              imageId={r.imageId}
+              detail={joinDetail([r.attribution, `added by ${r.addedBy}`])}
+              tag={r.sectionName}
+            />
+          ))}
+        </RecipeList>
+      )}
     </main>
   )
 }

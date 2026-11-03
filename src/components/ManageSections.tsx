@@ -6,8 +6,8 @@ import {
   renameSection,
 } from '../server/sections'
 
-const inputCls =
-  'w-full rounded-lg border border-line bg-card px-3 py-1.5 text-base pointer-fine:text-sm focus:border-leaf-deep focus:outline-none'
+// 16px on touch so iOS doesn't zoom into the field; compact with a mouse.
+const inputCls = 'field text-base pointer-fine:text-sm'
 
 export function ManageSections({
   sections,
@@ -40,10 +40,16 @@ export function ManageSections({
             act(() => renameSection({ data: { id: s.id, name } }))
           }}
         >
-          <input name="name" defaultValue={s.name} maxLength={60} className={inputCls} />
+          <input
+            name="name"
+            defaultValue={s.name}
+            maxLength={60}
+            aria-label={`Name of ${s.name}`}
+            className={inputCls}
+          />
           <button
             type="submit"
-            className="shrink-0 text-sm font-semibold text-leaf-deep hover:text-ink"
+            className="link shrink-0 px-2"
           >
             Rename
           </button>
@@ -58,12 +64,12 @@ export function ManageSections({
                 )
                   act(() => deleteSection({ data: s.id }))
               }}
-              className="shrink-0 text-sm font-semibold text-petal-deep hover:text-ink"
+              className="inline-flex min-h-11 shrink-0 items-center px-2 text-sm font-semibold text-petal-deep hover:text-ink"
             >
               Delete
             </button>
           ) : (
-            <span className="shrink-0 text-xs text-ink-soft">
+            <span className="shrink-0 px-2 text-xs text-ink-soft">
               {s.recipeCount} {s.recipeCount === 1 ? 'recipe' : 'recipes'}
             </span>
           )}
@@ -90,12 +96,12 @@ export function ManageSections({
         />
         <button
           type="submit"
-          className="shrink-0 text-sm font-semibold text-leaf-deep hover:text-ink"
+          className="link shrink-0 px-2"
         >
           Add
         </button>
       </form>
-      {error && <p className="text-sm text-petal-deep">{error}</p>}
+      {error && <p className="error-text">{error}</p>}
     </div>
   )
 }

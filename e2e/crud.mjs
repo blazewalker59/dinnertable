@@ -49,7 +49,7 @@ console.log('title-only ok, id', id2)
 // DELETE (soft)
 page.on('dialog', (d) => d.accept())
 await goto(`/recipes/${id}/edit`)
-await page.click('text=Delete')
+await page.click('button:has-text("Delete recipe")')
 await page.waitForURL(/\/sections\/2$/, { timeout: 15000 })
 await page.waitForSelector('h1:has-text("Soups and Dips")', { timeout: 10000 })
 if ((await page.content()).includes('E2E Test Tacos')) fail('delete: still listed in section')
@@ -57,7 +57,7 @@ console.log('delete ok (gone from section list)')
 
 // cleanup: soft-delete the title-only one too
 await goto(`/recipes/${id2}/edit`)
-await page.click('text=Delete')
+await page.click('button:has-text("Delete recipe")')
 await page.waitForURL(/\/sections\/\d+$/, { timeout: 15000 })
 
 await browser.close()
