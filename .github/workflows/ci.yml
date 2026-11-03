@@ -2,15 +2,15 @@ name: CI/CD
 
 # One pipeline for PRs and production (same shape as dreamteam's, adapted):
 #
-#   PR:            checks   (typecheck + build gate, one job)
+#   PR:            checks   (typecheck + test + build gate, one job)
 #
 #   push to main:  checks(+artifact) ── deploy (migrations + reuse the build, no rebuild)
 #
 # Differences from dreamteam, so they survive future edits:
 # - npm, not bun (this repo has package-lock.json).
-# - No test/coverage jobs: there are no test files, and `vitest run` currently
-#   crashes on startup (the Cloudflare vite plugin rejects vitest's ssr
-#   resolve.external). Add a test job back when tests exist.
+# - Tests run as a step in `checks`, not a separate job. They use
+#   vitest.config.ts, which leaves out the Cloudflare vite plugin (that plugin
+#   rejects vitest's ssr resolve.external and crashes the runner).
 # - No lint job: no linter is configured in this repo.
 # - Deploy applies D1 migrations first (dreamteam has no database migrations).
 on:
@@ -43,6 +43,9 @@ jobs:
 
       - name: Type check
         run: npx tsc --noEmit
+
+      - name: Test
+        run: npm test
 
       - name: Build
         run: npm run build

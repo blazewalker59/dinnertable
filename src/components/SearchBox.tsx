@@ -87,7 +87,7 @@ export function SearchBox() {
         role="combobox"
         aria-expanded={open}
         aria-label="Search recipes"
-        className="w-28 rounded-full border border-line bg-cream px-4 py-1.5 text-sm focus:border-leaf-deep focus:outline-none sm:w-56"
+        className="w-28 rounded-full border border-line bg-cream px-4 py-1.5 text-base pointer-fine:text-sm focus:border-leaf-deep focus:outline-none sm:w-56"
       />
       {searching && (
         <span className="absolute top-1/2 right-3 -translate-y-1/2 text-xs text-ink-soft">

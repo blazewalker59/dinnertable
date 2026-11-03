@@ -7,7 +7,7 @@ import {
 } from '../server/sections'
 
 const inputCls =
-  'w-full rounded-lg border border-line bg-card px-3 py-1.5 text-sm focus:border-leaf-deep focus:outline-none'
+  'w-full rounded-lg border border-line bg-card px-3 py-1.5 text-base pointer-fine:text-sm focus:border-leaf-deep focus:outline-none'
 
 export function ManageSections({
   sections,
