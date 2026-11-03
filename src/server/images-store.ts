@@ -46,3 +46,36 @@ export async function withFirstImage<T extends { id: number }>(
     if (!firstImage.has(img.recipeId)) firstImage.set(img.recipeId, img.id)
   return rows.map((r) => ({ ...r, imageId: firstImage.get(r.id) ?? null }))
 }
+
+/** Stores a recipe photo's two renditions in R2 and records it. */
+export async function storeImage(input: {
+  recipeId: number
+  memberId: number
+  thumb: { bytes: ArrayBuffer; type: string }
+  full: { bytes: ArrayBuffer; type: string }
+  width?: number | null
+  height?: number | null
+  sortOrder?: number
+}) {
+  const id = crypto.randomUUID()
+  await Promise.all([
+    env.IMAGES.put(r2Key(id, 'thumb'), input.thumb.bytes, {
+      httpMetadata: { contentType: input.thumb.type || 'image/jpeg' },
+    }),
+    env.IMAGES.put(r2Key(id, 'full'), input.full.bytes, {
+      httpMetadata: { contentType: input.full.type || 'image/jpeg' },
+    }),
+  ])
+  const [row] = await db()
+    .insert(recipeImages)
+    .values({
+      id,
+      recipeId: input.recipeId,
+      width: input.width ?? null,
+      height: input.height ?? null,
+      sortOrder: input.sortOrder ?? 0,
+      addedById: input.memberId,
+    })
+    .returning()
+  return row
+}

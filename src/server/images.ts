@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '../db'
 import { recipeImages } from '../db/schema'
 import { currentMember } from './auth'
-import { r2Key } from './images-store'
+import { r2Key, storeImage } from './images-store'
 
 export const uploadImage = createServerFn({ method: 'POST' })
   .inputValidator((data: FormData) => {
@@ -24,27 +24,15 @@ export const uploadImage = createServerFn({ method: 'POST' })
   })
   .handler(async ({ data }) => {
     const me = await currentMember()
-    const id = crypto.randomUUID()
-    await Promise.all([
-      env.IMAGES.put(r2Key(id, 'thumb'), await data.thumb.arrayBuffer(), {
-        httpMetadata: { contentType: data.thumb.type || 'image/jpeg' },
-      }),
-      env.IMAGES.put(r2Key(id, 'full'), await data.full.arrayBuffer(), {
-        httpMetadata: { contentType: data.full.type || 'image/jpeg' },
-      }),
-    ])
-    const [row] = await db()
-      .insert(recipeImages)
-      .values({
-        id,
-        recipeId: data.recipeId,
-        width: data.width,
-        height: data.height,
-        sortOrder: data.sortOrder,
-        addedById: me.id,
-      })
-      .returning()
-    return row
+    return storeImage({
+      recipeId: data.recipeId,
+      memberId: me.id,
+      thumb: { bytes: await data.thumb.arrayBuffer(), type: data.thumb.type },
+      full: { bytes: await data.full.arrayBuffer(), type: data.full.type },
+      width: data.width,
+      height: data.height,
+      sortOrder: data.sortOrder,
+    })
   })
 
 // Wiki-style: any member may remove any image (ADR-0007). Hard delete —

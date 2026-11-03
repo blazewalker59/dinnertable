@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm'
 import {
+  index,
   integer,
   primaryKey,
   sqliteTable,
@@ -143,3 +144,33 @@ export const recipeImages = sqliteTable('recipe_images', {
     .notNull()
     .default(sql`(unixepoch())`),
 })
+
+// API tokens a member makes for their AI agent, which reads (and, with the
+// `add` scope, adds) recipes over MCP at /mcp as them (ADR-0015). Only the
+// token's SHA-256 is stored.
+export type TokenScope = 'read' | 'add'
+export const apiTokens = sqliteTable(
+  'api_tokens',
+  {
+    id: text('id').primaryKey(),
+    memberId: integer('member_id')
+      .notNull()
+      .references(() => members.id),
+    /** What the member called it ("Claude"). */
+    name: text('name').notNull(),
+    tokenHash: text('token_hash').notNull().unique(),
+    /** The token's first characters, to tell tokens apart on screen. */
+    prefix: text('prefix').notNull(),
+    /** `read` always; `add` lets its agent add recipes. */
+    scopes: text('scopes', { mode: 'json' }).$type<Array<TokenScope>>().notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),
+    revokedAt: integer('revoked_at', { mode: 'timestamp' }),
+    /** Rate limit: a fixed one-minute window (unix seconds) and its count. */
+    windowStart: integer('window_start').notNull().default(0),
+    windowCount: integer('window_count').notNull().default(0),
+  },
+  (t) => [index('api_tokens_member_idx').on(t.memberId)],
+)

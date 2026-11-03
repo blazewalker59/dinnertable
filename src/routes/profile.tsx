@@ -68,6 +68,20 @@ function Profile() {
           {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save'}
         </button>
       </form>
+      <Link
+        to="/agents"
+        className="mt-10 flex items-center justify-between rounded-2xl border border-line bg-card px-4 py-3 transition hover:border-leaf"
+      >
+        <span>
+          <span className="block font-semibold">AI agents</span>
+          <span className="block text-sm text-ink-soft">
+            Let your assistant read recipes for your grocery list, or add them
+          </span>
+        </span>
+        <span aria-hidden className="text-leaf-deep">
+          →
+        </span>
+      </Link>
       <button
         onClick={signOut}
         className="mt-12 btn-danger"

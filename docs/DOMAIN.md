@@ -30,6 +30,16 @@ Recipe                          RecipeImage
   updatedAt
   deletedAt?    (soft delete)
 
+ApiToken                        (ADR-0015)
+  id
+  memberId     → Member
+  name         (what the agent is called)
+  tokenHash    (SHA-256; the token itself is never stored)
+  prefix       (first characters, shown on screen)
+  scopes       (read, add)
+  createdAt, lastUsedAt?, revokedAt?
+  windowStart, windowCount  (per-minute rate limit)
+
 recipes_fts (FTS5 virtual table; raw SQL migration + triggers)
   title, ingredients, instructions, notes, attribution
 ```
@@ -39,6 +49,8 @@ recipes_fts (FTS5 virtual table; raw SQL migration + triggers)
 - Recipe 1—N RecipeImage (zero or more; image-only recipes valid)
 - Member N—N Recipe via Favorite
 - Member 1—N Recipe/RecipeImage via addedBy (attribution of entry, not provenance)
+- Member 1—N ApiToken (an agent acts as its member; recipes it adds are
+  added by that member)
 
 ## Invariants
 - Only `title` is required on a recipe.
@@ -50,6 +62,7 @@ recipes_fts (FTS5 virtual table; raw SQL migration + triggers)
 ## System shape
 Worker running TanStack Start (loaders + server functions) with in-app
 Google auth via Better Auth (email allowlist, ADR-0014) → D1 (Drizzle; FTS5
-raw) + R2 (image renditions) → served on dinnertable.cc. Better Auth owns
+raw) + R2 (image renditions) → served on dinnertable.cc. Agents reach the same data over MCP at `/mcp`
+with a member's API token (ADR-0015). Better Auth owns
 user/session/account/verification tables; the domain references `members`
 only.

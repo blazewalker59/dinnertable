@@ -9,36 +9,12 @@ import {
   sections,
 } from '../db/schema'
 import { currentMember } from './auth'
+import { validateFields } from '../lib/recipe-fields'
+import type { RecipeFields } from '../lib/recipe-fields'
 import { imagesForRecipe, withFirstImage } from './images-store'
+import { insertRecipe, searchRecipeRows } from './recipe-store'
 
-export type RecipeFields = {
-  title: string
-  sectionId: number
-  servings: string | null
-  attribution: string | null
-  ingredients: string | null
-  instructions: string | null
-  notes: string | null
-}
-
-// Only title is required (ADR-0003); blank optional fields become null.
-function validateFields(input: RecipeFields): RecipeFields {
-  const title = input.title.trim()
-  if (!title) throw new Error('Title is required')
-  const clean = (v: string | null) => {
-    const t = v?.trim()
-    return t ? t : null
-  }
-  return {
-    title,
-    sectionId: Number(input.sectionId),
-    servings: clean(input.servings),
-    attribution: clean(input.attribution),
-    ingredients: clean(input.ingredients),
-    instructions: clean(input.instructions),
-    notes: clean(input.notes),
-  }
-}
+export type { RecipeFields } from '../lib/recipe-fields'
 
 // Every recipe query excludes soft-deleted rows (ADR-0007).
 const notDeleted = isNull(recipes.deletedAt)
@@ -147,47 +123,18 @@ export const getRecipe = createServerFn()
     return { ...row, images, isFavorite: !!fav }
   })
 
-// FTS5 lives outside Drizzle's schema model (ADR-0006) — raw SQL seam.
 export const searchRecipes = createServerFn()
   .inputValidator((q: string) => q.trim().slice(0, 100))
   .handler(async ({ data: q }) => {
     await currentMember()
-    if (!q) return { query: q, results: [] }
-    // Quote each term so user input can't inject FTS syntax; * = prefix match.
-    const match = q
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((t) => `"${t.replaceAll('"', '""')}"*`)
-      .join(' ')
-    const rows = await db().all<{
-      id: number
-      title: string
-      attribution: string | null
-      sectionId: number
-      sectionName: string
-    }>(sql`
-      SELECT r.id, r.title, r.attribution,
-             r.section_id AS sectionId, s.name AS sectionName
-      FROM recipes_fts f
-      JOIN recipes r ON r.id = f.rowid
-      JOIN sections s ON s.id = r.section_id
-      WHERE recipes_fts MATCH ${match}
-        AND r.deleted_at IS NULL
-      ORDER BY rank
-      LIMIT 30
-    `)
-    return { query: q, results: rows }
+    return { query: q, results: await searchRecipeRows(q) }
   })
 
 export const createRecipe = createServerFn({ method: 'POST' })
   .inputValidator(validateFields)
   .handler(async ({ data }) => {
     const me = await currentMember()
-    const [created] = await db()
-      .insert(recipes)
-      .values({ ...data, addedById: me.id })
-      .returning({ id: recipes.id })
-    return created
+    return insertRecipe(data, me.id)
   })
 
 // Wiki-style: any member may edit or delete any recipe (ADR-0007).

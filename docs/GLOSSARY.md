@@ -34,3 +34,8 @@ conversation; if a word isn't here, it isn't a concept in this system.
 **Words that are deliberately NOT concepts here:** household/tenant
 (ADR-0001), meal log / cook log / feed (ADR-0005), tag (ADR-0006), comment
 (ADR-0010), role/admin (ADR-0007), structured ingredient (ADR-0003).
+- **Agent** — a member's AI assistant using the recipe book over MCP
+  (`/mcp`) as them, with an API token: reading recipes (e.g. for a grocery
+  list) and, with the add scope, adding recipes (ADR-0015).
+- **API token** — what an agent signs in with (`dt_…`). Made and revoked by
+  a member on the AI agents page, and shown once.
